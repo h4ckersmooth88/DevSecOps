@@ -1,0 +1,63 @@
+image: docker:latest
+
+services:
+  - docker:dind
+
+stages:
+  - build
+  - test
+  - release
+  - preprod
+  - integration
+  - prod
+
+build:
+  stage: build
+  image: python:3.6
+  before_script:
+   - pip3 install --upgrade virtualenv
+  script:
+   - virtualenv env
+   - source env/bin/activate
+   - pip install -r requirements.txt
+   - python manage.py check
+
+test:
+  stage: test
+  image: python:3.6
+  before_script:
+   - pip3 install --upgrade virtualenv
+  script:
+   - virtualenv env
+   - source env/bin/activate
+   - pip install -r requirements.txt
+   - python manage.py test taskManager
+
+oast-snyk:
+  stage: test
+  image: node:latest
+  before_script:
+    - wget -O snyk https://github.com/snyk/snyk/releases/download/v1.388.0/snyk-linux
+    - chmod +x snyk
+    - mv snyk /usr/local/bin/
+  script:
+    - npm install
+    - snyk test --json > snyk-results.json
+  artifacts:
+    paths:
+      - snyk-results.json
+    when: always
+    expire_in: one week
+
+integration:
+  stage: integration
+  script:
+    - echo "This is an integration step"
+    - exit 1
+  allow_failure: true # Even if the job fails, continue to the next stages
+
+prod:
+  stage: prod
+  script:
+    - echo "This is a deploy step"
+  when: manual # Continuous Delivery
