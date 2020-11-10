@@ -1,0 +1,163 @@
+
+Install OWASP Dependency Check Tool
+
+    Dependency-Check is SCA tool that attempts to detect publicly disclosed vulnerabilities contained within a project’s dependencies.
+
+Source: DependencyCheck
+
+    You can find more details about the project at https://github.com/jeremylong/DependencyCheck
+
+Before installing Dependency-Check, we need to ensure if java is installed in our system.
+
+java -h
+
+bash: java: command not found
+
+It seems Java is not installed, so we need to install Java with the following command.
+
+apt install openjdk-8-jre -y
+
+Next, we need to download Dependency Check source code.
+
+wget -O /opt/v5.3.2.zip https://bintray.com/jeremy-long/owasp/download_file?file_path=dependency-check-5.3.2-release.zip
+
+Extract the source code.
+
+unzip /opt/v5.3.2.zip -d /opt/
+
+We will add the tool to the PATH, so we can refer it on the command line.
+
+export PATH=/opt/dependency-check/bin:$PATH
+
+Let’s move to the next step.
+
+
+
+Run the OAST Scan
+
+Let’s explore what options this tool provides us.
+
+dependency-check.sh -h
+
+usage: Dependency-Check Core [--advancedHelp] [--enableExperimental]
+       [--exclude <pattern>] [-f <format>] [--failOnCVSS <score>] [-h]
+       [--junitFailOnCVSS <score>] [-l <file>] [-n] [-o <path>]
+       [--prettyPrint] [--project <name>] [-s <path>] [--suppression
+       <file>] [-v]
+
+Dependency-Check Core can be used to identify if there are any known CVE
+vulnerabilities in libraries utilized by an application. Dependency-Check
+Core will automatically update required data from the Internet, such as
+the CVE and CPE data files from nvd.nist.gov.
+
+    --advancedHelp              Print the advanced help message.
+    --enableExperimental        Enables the experimental analyzers.
+    --exclude <pattern>         Specify an exclusion pattern. This option
+                                can be specified multiple times and it
+                                accepts Ant style exclusions.
+ -f,--format <format>           The report format (HTML, XML, CSV, JSON,
+                                JUNIT, or ALL). The default is HTML.
+                                Multiple format parameters can be
+                                specified.
+    --failOnCVSS <score>        Specifies if the build should be failed if
+                                a CVSS score above a specified level is
+                                identified. The default is 11; since the
+                                CVSS scores are 0-10, by default the build
+                                will never fail.
+ -h,--help                      Print this message.
+    --junitFailOnCVSS <score>   Specifies the CVSS score that is
+                                considered a failure when generating the
+                                junit report. The default is 0.
+ -l,--log <file>                The file path to write verbose logging
+                                information.
+ -n,--noupdate                  Disables the automatic updating of the CPE
+                                data.
+ -o,--out <path>                The folder to write reports to. This
+                                defaults to the current directory. It is
+                                possible to set this to a specific file
+                                name if the format argument is not set to
+                                ALL.
+    --prettyPrint               When specified the JSON and XML report
+                                formats will be pretty printed.
+    --project <name>            The name of the project being scanned.
+ -s,--scan <path>               The path to scan - this option can be
+                                specified multiple times. Ant style paths
+                                are supported (e.g. 'path/**/*.jar'); if
+                                using Ant style paths it is highly
+                                recommended to quote the argument value.
+    --suppression <file>        The file path to the suppression XML file.
+                                This can be specified more then once to
+                                utilize multiple suppression files
+ -v,--version                   Print the version information.
+
+Perform the scan on the webgoat source code directory using the following command.
+
+dependency-check.sh --scan /webapp --format "CSV" --project "Webgoat" --failOnCVSS 8 --out /opt
+
+    Notice, the format, project name and output directory.
+
+At first, Dependency-Check will update its database before scanning the code.
+
+[INFO] Checking for updates
+[INFO] NVD CVE requires several updates; this could take a couple of minutes.
+[INFO] Download Started for NVD CVE - 2009
+[INFO] Download Started for NVD CVE - 2016
+[INFO] Download Complete for NVD CVE - 2009  (132 ms)
+[INFO] Download Started for NVD CVE - 2017
+[INFO] Processing Started for NVD CVE - 2009
+[INFO] Download Complete for NVD CVE - 2016  (150 ms)
+[INFO] Processing Started for NVD CVE - 2016
+[INFO] Download Complete for NVD CVE - 2017  (168 ms)
+[INFO] Processing Started for NVD CVE - 2017
+[INFO] Processing Complete for NVD CVE - 2009  (20600 ms)
+[INFO] Processing Complete for NVD CVE - 2016  (26777 ms)
+[INFO] Processing Complete for NVD CVE - 2017  (29235 ms)
+[INFO] Download Started for NVD CVE - Modified
+[INFO] Download Complete for NVD CVE - Modified  (110 ms)
+[INFO] Processing Started for NVD CVE - Modified
+[INFO] Processing Complete for NVD CVE - Modified  (995 ms)
+[INFO] Begin database maintenance
+[INFO] Updated the CPE ecosystem on 48548 NVD records
+[INFO] Removed the CPE ecosystem on 3926 NVD records
+[INFO] Cleaned up 1 orphaned NVD records
+[INFO] End database maintenance (19445 ms)
+[INFO] Skipping RetireJS update since last update was within 24 hours.
+[INFO] Begin database defrag
+[INFO] End database defrag (3907 ms)
+[INFO] Check for updates complete (55501 ms)
+[INFO] 
+
+Dependency-Check is an open source tool performing a best effort analysis of 3rd party dependencies; false positives and false negatives may exist in the analysis performed by the tool. Use of the tool and the reporting provided constitutes acceptance for use in an AS IS condition, and there are NO warranties, implied or otherwise, with regard to the analysis or its use. Any use of the tool and the reporting provided is at the user’s risk. In no event shall the copyright holder or OWASP be held liable for any damages whatsoever arising out of or in connection with the use of this tool, the analysis performed, or the resulting report.
+
+
+[INFO] Analysis Started
+[INFO] Finished File Name Analyzer (0 seconds)
+[INFO] Finished Dependency Merging Analyzer (0 seconds)
+[INFO] Finished Version Filter Analyzer (0 seconds)
+[INFO] Finished Hint Analyzer (0 seconds)
+[INFO] Created CPE Index (1 seconds)
+[INFO] Finished CPE Analyzer (1 seconds)
+[INFO] Finished False Positive Analyzer (0 seconds)
+[INFO] Finished NVD CVE Analyzer (0 seconds)
+00:00  INFO: Vulnerability found: jquery below 1.12.0
+00:00  INFO: Vulnerability found: jquery below 1.12.0
+00:00  INFO: Vulnerability found: jquery below 3.4.0
+00:00  INFO: Vulnerability found: jquery below 3.5.0
+00:00  INFO: Vulnerability found: jquery below 3.5.0
+00:00  INFO: Vulnerability found: bootstrap below 3.4.1
+00:00  INFO: Vulnerability found: bootstrap below 3.4.0
+00:00  INFO: Vulnerability found: bootstrap below 3.4.0
+00:00  INFO: Vulnerability found: bootstrap below 3.4.0
+00:00  INFO: Vulnerability found: jquery-ui-dialog below 1.12.0
+[INFO] Finished RetireJS Analyzer (0 seconds)
+[INFO] Finished Sonatype OSS Index Analyzer (0 seconds)
+[INFO] Finished Vulnerability Suppression Analyzer (0 seconds)
+[INFO] Finished Dependency Bundling Analyzer (0 seconds)
+[INFO] Analysis Complete (2 seconds)
+
+As we have learned in the DevSecOps Gospel, we should save the output in a machine-readable format so the output can be parsed by the machines.
+
+You can see several vulnerabilities found in jquery from the output, also the report was stored in the /opt/dependency-check-report.csv file.
+
+In the next exercises, you will learn how to embed this scan on CI/CD pipelines.
+
