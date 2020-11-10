@@ -1,0 +1,161 @@
+
+Download the source code
+
+We will do all the exercises locally first in DevSecOps-Box, so lets start the exercise.
+
+First, We need to download the source code of the project from our git repository.
+
+git clone https://gitlab.practical-devsecops.training/pdso/django.nv webapp
+
+Lets cd into the application so we can scan the app.
+
+cd webapp
+
+We are now in the webapp directory
+
+
+
+Install Hadolint Tool
+
+    Hadolint checks a Dockerfile for Docker image best practices. The linter is parsing the Dockerfile into an AST and performs rules on top of the AST.
+
+    You can find more details about the project at https://github.com/hadolint/hadolint
+
+Let’s install the Hadolint tool on the system to perform static analysis of Dockerfiles.
+
+wget https://github.com/hadolint/hadolint/releases/download/v1.18.0/hadolint-Linux-x86_64
+
+--2020-09-01 07:34:54--  https://github.com/hadolint/hadolint/releases/download/v1.18.0/hadolint-Linux-x86_64
+Resolving github.com (github.com)... 140.82.113.4
+Connecting to github.com (github.com)|140.82.113.4|:443... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: https://github-production-release-asset-2e65be.s3.amazonaws.com/46234189/65143480-a71b-11ea-8792-d5ccbcc24f7a?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20200901%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20200901T073447Z&X-Amz-Expires=300&X-Amz-Signature=7f5bf74b9644482dc3271999064cdaebc87f74ebeab6e351b43feba60c7926ba&X-Amz-SignedHeaders=host&actor_id=0&key_id=0&repo_id=46234189&response-content-disposition=attachment%3B%20filename%3Dhadolint-Linux-x86_64&response-content-type=application%2Foctet-stream [following]
+--2020-09-01 07:34:54--  https://github-production-release-asset-2e65be.s3.amazonaws.com/46234189/65143480-a71b-11ea-8792-d5ccbcc24f7a?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20200901%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20200901T073447Z&X-Amz-Expires=300&X-Amz-Signature=7f5bf74b9644482dc3271999064cdaebc87f74ebeab6e351b43feba60c7926ba&X-Amz-SignedHeaders=host&actor_id=0&key_id=0&repo_id=46234189&response-content-disposition=attachment%3B%20filename%3Dhadolint-Linux-x86_64&response-content-type=application%2Foctet-stream
+Resolving github-production-release-asset-2e65be.s3.amazonaws.com (github-production-release-asset-2e65be.s3.amazonaws.com)... 52.217.12.220
+Connecting to github-production-release-asset-2e65be.s3.amazonaws.com (github-production-release-asset-2e65be.s3.amazonaws.com)|52.217.12.220|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 3232076 (3.1M) [application/octet-stream]
+Saving to: ‘hadolint-Linux-x86_64’
+
+hadolint-Linux-x86_ 100%[===================>]   3.08M  --.-KB/s    in 0.05s   
+
+2020-09-01 07:34:54 (59.7 MB/s) - ‘hadolint-Linux-x86_64’ saved [3232076/3232076]
+
+Let’s rename this file to make it easy for us to type it.
+
+mv hadolint-Linux-x86_64 hadolint
+
+In order to run this tool, you need to give it executable permissions using the following command
+
+chmod +x hadolint
+
+We have successfully installed hadolint scanner, let’s explore the functionality it provides us.
+
+./hadolint --help
+
+
+/webapp# ./hadolint --help 
+hadolint - Dockerfile Linter written in Haskell
+
+Usage: hadolint [-v|--version] [-c|--config FILENAME] [-f|--format ARG] 
+                [DOCKERFILE...] [--ignore RULECODE] 
+                [--trusted-registry REGISTRY (e.g. docker.io)]
+  Lint Dockerfile for errors and best practices
+
+Available options:
+  -h,--help                Show this help text
+  -v,--version             Show version
+  -c,--config FILENAME     Path to the configuration file
+  -f,--format ARG          The output format for the results [tty | json |
+                           checkstyle | codeclimate | codacy] (default: tty)
+  --ignore RULECODE        A rule to ignore. If present, the ignore list in the
+                           config file is ignored
+  --trusted-registry REGISTRY (e.g. docker.io)
+                           A docker registry to allow to appear in FROM
+                           instructions
+
+Let’s move to the next step.
+
+
+
+Run the Hadolint on Dockerfile
+
+As we have learned in DevSecOps best practices, always run and test a tool locally first, before putting it into a CI/CD pipeline.
+
+./hadolint Dockerfile
+
+/webapp# ./hadolint Dockerfile 
+Dockerfile:9 DL3018 Pin versions in apk add. Instead of `apk add <package>` use `apk add <package>=<version>`
+/webapp# 
+
+Hadolint ran successfully and it found one issue i.e., we are not following the best practices for Dockerfile.
+
+To fix this, you need to edit Dockerfile and add a specific version of the package.
+
+Let’s check the contents of the Dockerfile using the cat command.
+
+cat -n Dockerfile
+
+    Pro-tip, -n options allows you to show line numbers.
+
+     1  # FROM python base image
+     2  FROM python:2-alpine
+     3
+     4  # COPY startup script
+     5  COPY . /app
+     6
+     7  WORKDIR /app
+     8
+     9  RUN apk add --no-cache gawk sed bash grep bc coreutils
+    10  RUN pip install -r requirements.txt
+    11  RUN chmod +x reset_db.sh && bash reset_db.sh
+    12
+    13  # EXPOSE port 8000 for communication to/from server
+    14  EXPOSE 8000
+    15
+    16  # CMD specifcies the command to execute container starts running.
+    17  CMD ["/app/run_app_docker.sh"]
+
+As per the Hadolint finding Dockerfile:9 DL3018 Pin versions in apk add., the Dockerfile line number 9 has a problem.
+
+So let’s fix it.
+
+From
+
+     9  RUN apk add --no-cache gawk sed bash grep bc coreutils
+
+To
+
+     9  RUN apk add --no-cache gawk=5.0.1-r0 sed=4.7-r0 bash=5.0.11-r1 grep=3.3-r0 bc=1.07.1-r1 coreutils=8.31-r0
+
+Let’s edit the Dockerfile to add these changes.
+
+cat > Dockerfile <<EOL
+# FROM python base image
+FROM python:2-alpine
+
+# COPY startup script
+COPY . /app
+
+WORKDIR /app
+
+RUN apk add --no-cache gawk=5.0.1-r0 sed=4.7-r0 bash=5.0.11-r1 grep=3.3-r0 bc=1.07.1-r1 coreutils=8.31-r0
+RUN pip install -r requirements.txt
+RUN chmod +x reset_db.sh && bash reset_db.sh
+
+# EXPOSE port 8000 for communication to/from server
+EXPOSE 8000
+
+# CMD specifcies the command to execute container starts running.
+CMD ["/app/run_app_docker.sh"]
+EOL
+
+It’s time to run the Hadolint scan again.
+
+./hadolint Dockerfile
+
+/webapp# ./hadolint Dockerfile
+/webapp#
+
+Hurray! no issues found.
+
