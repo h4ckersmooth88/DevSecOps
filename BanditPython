@@ -1,0 +1,125 @@
+
+Download the source code
+
+We will do all the exercises locally first in DevSecOps-Box, so lets start the exercise.
+
+First, We need to download the source code of the project from our git repository.
+
+git clone https://gitlab.practical-devsecops.training/pdso/django.nv webapp
+
+Lets cd into the application so we can scan the app.
+
+cd webapp
+
+We are now in the webapp directory.
+
+Let’s move to the next step.
+
+
+Install SAST Tool
+
+    The Bandit is a tool designed to find common security issues in Python code.
+
+    To do this Bandit, processes each file, builds an AST, and runs appropriate plugins against the AST nodes. Once Bandit has finished scanning all the files it generates a report.
+
+    Bandit was originally developed within the OpenStack Security Project and later rehomed to PyCQA.
+
+    You can find more details about the project at https://github.com/PyCQA/bandit
+
+Let’s install the bandit scanner on the system to perform static analysis.
+
+pip3 install bandit
+
+Collecting bandit
+  Downloading https://files.pythonhosted.org/packages/5a/50/ff2f2c8f1f0ca1569f678eeb608c0f973b835985410985594fbee96be820/bandit-1.6.2-py2.py3-none-any.whl (122kB)
+    100% |████████████████████████████████| 122kB 498kB/s 
+Collecting six>=1.10.0 (from bandit)
+  Downloading https://files.pythonhosted.org/packages/65/eb/1f97cb97bfc2390a276969c6fae16075da282f5058082d4cb10c6c5c1dba/six-1.14.0-py2.py3-none-any.whl
+Collecting GitPython>=1.0.1 (from bandit)
+  Downloading https://files.pythonhosted.org/packages/7a/c9/6e1aec0893efe66f407d2e14a3daba73dbb39bbeeb72142b037c4a224d40/GitPython-2.1.15-py2.py3-none-any.whl (452kB)
+    100% |████████████████████████████████| 460kB 1.9MB/s 
+Collecting stevedore>=1.20.0 (from bandit)
+  Downloading https://files.pythonhosted.org/packages/e6/49/a35dd566626892d577e426dbe5ea424dd7fbe10645f2c1070dcba474eca9/stevedore-1.32.0-py2.py3-none-any.whl (43kB)
+    100% |████████████████████████████████| 51kB 7.1MB/s 
+Collecting PyYAML>=3.13 (from bandit)
+
+We have successfully installed bandit scanner, lets explore the functionality it provides us.
+
+bandit --help
+
+
+usage: bandit [-h] [-r] [-a {file,vuln}] [-n CONTEXT_LINES] [-c CONFIG_FILE]
+              [-p PROFILE] [-t TESTS] [-s SKIPS] [-l] [-i]
+              [-f {csv,custom,html,json,screen,txt,xml,yaml}]
+              [--msg-template MSG_TEMPLATE] [-o [OUTPUT_FILE]] [-v] [-d] [-q]
+              [--ignore-nosec] [-x EXCLUDED_PATHS] [-b BASELINE]
+              [--ini INI_PATH] [--version]
+              [targets [targets ...]]
+
+Bandit - a Python source code security analyzer
+
+positional arguments:
+  targets               source file(s) or directory(s) to be tested
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -r, --recursive       find and process files in subdirectories
+  -a {file,vuln}, --aggregate {file,vuln}
+                        aggregate output by vulnerability (default) or by
+                        filename
+  -n CONTEXT_LINES, --number CONTEXT_LINES
+                        maximum number of code lines to output for each issue
+  -c CONFIG_FILE, --configfile CONFIG_FILE
+                        optional config file to use for selecting plugins and
+                        overriding defaults
+  -p PROFILE, --profile PROFILE
+                        profile to use (defaults to executing all tests)
+  -t TESTS, --tests TESTS
+                        comma-separated list of test IDs to run
+  -s SKIPS, --skip SKIPS
+                        comma-separated list of test IDs to skip
+  -l, --level           report only issues of a given severity level or higher
+                        (-l for LOW, -ll for MEDIUM, -lll for HIGH)
+  -i, --confidence      report only issues of a given confidence level or
+                        higher (-i for LOW, -ii for MEDIUM, -iii for HIGH)
+  -f {csv,custom,html,json,screen,txt,xml,yaml}, --format {csv,custom,html,json,screen,txt,xml,yaml}
+                        specify output format
+  --msg-template MSG_TEMPLATE
+                        specify output message template (only usable with
+                        --format custom), see CUSTOM FORMAT section for list
+                        of available values
+  -o [OUTPUT_FILE], --output [OUTPUT_FILE]
+                        write report to filename
+  -v, --verbose         output extra information like excluded and included
+                        files
+  -d, --debug           turn on debug mode
+  -q, --quiet, --silent
+                        only show output in the case of an error
+  --ignore-nosec        do not skip lines with # nosec comments
+  -x EXCLUDED_PATHS, --exclude EXCLUDED_PATHS
+                        comma-separated list of paths (glob patterns
+                        supported) to exclude from scan (note that these are
+                        in addition to the excluded paths provided in the
+                        config file)
+  -b BASELINE, --baseline BASELINE
+                        path of a baseline report to compare against (only
+                        JSON-formatted files are accepted)
+  --ini INI_PATH        path to a .bandit file that supplies command line
+                        arguments
+  --version             show program's version number and exit
+
+Let’s move to the next step.
+
+
+
+Run the scanner
+
+As we have learned in DevSecOps Gospel, we would like to store the content in a JSON file. We are using tee here to show the output and store it a file simultaneously.
+
+bandit -r . -f json | tee bandit-output.json
+
+Bandit ran successfully and it found three security issues.
+1. Two, A medium severity issue.
+2. One, A high severity issue.
+
+In the next exercise, we will explore how to do add bandit to the CI/CD pipeline.
