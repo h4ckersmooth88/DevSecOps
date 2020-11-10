@@ -1,0 +1,386 @@
+
+Download the source code
+
+We will do all the exercises locally first in DevSecOps-Box, so lets start the exercise.
+
+First, We need to download the source code of the project from our git repository.
+
+git clone https://gitlab.practical-devsecops.training/pdso/rails.git webapp
+
+Lets cd into the application so we can scan the app.
+
+cd webapp
+
+We are now in the webapp directory.
+
+Let’s move to the next step.
+
+
+
+Install the bundler-audit tool
+
+Basically, our system doesn’t have Ruby installed, so we need to install it using rbenv utility so lets install rbenv.
+
+curl -fsSL https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-installer | bash
+
+Installing rbenv with git...
+Initialized empty Git repository in /root/.rbenv/.git/
+Updating origin
+remote: Enumerating objects: 4, done.
+remote: Counting objects: 100% (4/4), done.
+remote: Compressing objects: 100% (4/4), done.
+remote: Total 2812 (delta 0), reused 1 (delta 0), pack-reused 2808
+Receiving objects: 100% (2812/2812), 530.60 KiB | 5.25 MiB/s, done.
+Resolving deltas: 100% (1766/1766), done.
+From https://github.com/rbenv/rbenv
+ * [new branch]      master     -> origin/master
+ * [new tag]         v0.1.0     -> v0.1.0
+ * [new tag]         v0.1.1     -> v0.1.1
+ * [new tag]         v0.1.2     -> v0.1.2
+ * [new tag]         v0.2.0     -> v0.2.0
+ * [new tag]         v0.2.1     -> v0.2.1
+ * [new tag]         v0.3.0     -> v0.3.0
+ * [new tag]         v0.4.0     -> v0.4.0
+ * [new tag]         v1.0.0     -> v1.0.0
+ * [new tag]         v1.1.0     -> v1.1.0
+ * [new tag]         v1.1.1     -> v1.1.1
+ * [new tag]         v1.1.2     -> v1.1.2
+Branch 'master' set up to track remote branch 'master' from 'origin'.
+Already on 'master'
+warning: gcc not found; using CC=cc
+aborted: compiler not found: cc
+Optional bash extension failed to build, but things will still work normally.
+
+Installing ruby-build with git...
+Cloning into '/root/.rbenv/plugins/ruby-build'...
+remote: Enumerating objects: 82, done.
+remote: Counting objects: 100% (82/82), done.
+remote: Compressing objects: 100% (61/61), done.
+remote: Total 11148 (delta 59), reused 34 (delta 16), pack-reused 11066
+Receiving objects: 100% (11148/11148), 2.36 MiB | 4.58 MiB/s, done.
+Resolving deltas: 100% (7353/7353), done.
+
+Running doctor script to verify installation...
+Checking for `rbenv' in PATH: not found
+  You seem to have rbenv installed in `/root/.rbenv/bin', but that
+  directory is not present in PATH. Please add it to PATH by configuring
+  your `~/.bashrc', `~/.zshrc', or `~/.config/fish/config.fish'.
+
+The rbenv utility is complaining about not being on the path, so lets add it to the path using the following command.
+
+export PATH="~/.rbenv/bin:$PATH"
+
+Before we install ruby, lets check what version of ruby our project needs by peeking into Gemfile
+
+cat Gemfile
+
+# frozen_string_literal: true
+source "https://rubygems.org"
+
+#don't upgrade
+gem "rails", "6.0.0"
+
+ruby "2.6.5"
+
+gem "aruba"
+gem "bcrypt"
+gem "coffee-rails"
+gem "execjs"
+gem "foreman"
+gem "jquery-fileupload-rails"
+gem "jquery-rails"
+gem "minitest"
+gem "powder" # Pow related gem
+gem "pry-rails" # not in dev group in case running via prod/staging @ a training
+gem "puma"
+gem "rails-perftest"
+gem "rake"
+gem "responders" #For Rails 4.2 # LOCKED DOWN
+gem "ruby-prof"
+gem "sassc-rails"
+gem "simplecov", require: false, group: :test
+gem "sqlite3"
+gem "therubyracer"
+gem "turbolinks"
+gem "uglifier"
+gem "unicorn"
+
+# Add SMTP server support using MailCatcher
+# NOTE: https://github.com/sj26/mailcatcher#bundler
+# gem 'mailcatcher'
+
+group :development, :mysql do
+  gem "better_errors"
+  gem "binding_of_caller"
+  gem "bundler-audit"
+  gem "guard-livereload"
+  gem "guard-rspec"
+  gem "guard-shell"
+  gem "pry"
+  gem "rack-livereload"
+  gem "rb-fsevent"
+  gem "rubocop-github"
+  gem "travis-lint"
+end
+
+group :development, :test, :mysql do
+  gem "capybara"
+  gem "database_cleaner"
+  gem "launchy"
+  gem "poltergeist"
+  gem "rspec-rails", '4.0.0.beta3' # 4/26/2019: LOCKED DOWN
+  gem "test-unit"
+end
+
+group :openshift do
+  gem "pg"
+end
+
+group :mysql do
+  gem "mysql2"
+end
+
+Okay, it seems we need to use ruby “2.6.5”. Let’s go ahead and install it using rbenv
+
+rbenv install 2.6.5
+
+/webapp# rbenv install 2.6.5
+Downloading ruby-2.6.5.tar.bz2...
+-> https://cache.ruby-lang.org/pub/ruby/2.6/ruby-2.6.5.tar.bz2
+Installing ruby-2.6.5...
+
+BUILD FAILED (Ubuntu 18.04 using ruby-build 20201005-4-g4761049)
+
+Inspect or clean up the working tree at /tmp/ruby-build.20201104125741.464.rvawYF
+Results logged to /tmp/ruby-build.20201104125741.464.log
+
+Last 10 log lines:
+tool/config.sub already exists
+checking build system type... x86_64-pc-linux-gnu
+checking host system type... x86_64-pc-linux-gnu
+checking target system type... x86_64-pc-linux-gnu
+checking for gcc... no
+checking for cc... no
+checking for cl.exe... no
+configure: error: in `/tmp/ruby-build.20201104125741.464.rvawYF/ruby-2.6.5':
+configure: error: no acceptable C compiler found in $PATH
+See `config.log' for more details
+/webapp# cat /etc/issue
+Ubuntu 18.04.5 LTS \n \l
+
+Now, we need to install a compiler.
+
+apt-get install build-essential libreadline-dev -y
+
+Reading package lists... Done
+Building dependency tree       
+Reading state information... Done
+The following additional packages will be installed:
+  binutils binutils-common binutils-x86-64-linux-gnu cpp cpp-7 dpkg-dev
+  fakeroot g++ g++-7 gcc gcc-7 gcc-7-base libalgorithm-diff-perl
+               ..............SNIP...............
+Setting up libgcc-7-dev:amd64 (7.5.0-3ubuntu1~18.04) ...
+Setting up cpp-7 (7.5.0-3ubuntu1~18.04) ...
+Setting up libstdc++-7-dev:amd64 (7.5.0-3ubuntu1~18.04) ...
+Setting up libalgorithm-merge-perl (0.08-3) ...
+Setting up libalgorithm-diff-xs-perl (0.04-5) ...
+Setting up binutils-x86-64-linux-gnu (2.30-21ubuntu1~18.04.4) ...
+Setting up cpp (4:7.4.0-1ubuntu2.3) ...
+Setting up binutils (2.30-21ubuntu1~18.04.4) ...
+Setting up gcc-7 (7.5.0-3ubuntu1~18.04) ...
+Setting up g++-7 (7.5.0-3ubuntu1~18.04) ...
+Setting up gcc (4:7.4.0-1ubuntu2.3) ...
+Setting up dpkg-dev (1.19.0.5ubuntu2.3) ...
+Setting up g++ (4:7.4.0-1ubuntu2.3) ...
+update-alternatives: using /usr/bin/g++ to provide /usr/bin/c++ (c++) in auto mode
+update-alternatives: warning: skip creation of /usr/share/man/man1/c++.1.gz because associated file /usr/share/man/man1/g++.1.gz (of link group c++) doesn't exist
+Setting up build-essential (12.4ubuntu1) ...
+Processing triggers for libc-bin (2.27-3ubuntu1.2) ...
+
+Let’s try installing ruby again
+
+rbenv install --verbose 2.6.5
+
+We need to ruby on the path
+
+export PATH="/root/.rbenv/versions/2.6.5/bin:$PATH"
+
+Okay, its done. Now, we can verify the ruby version using the following command
+ruby --version
+
+ruby 2.6.5p114 (2019-10-01 revision 67812) [x86_64-linux]
+
+Let’s install the bundler-audit tool to perform SCA.
+
+gem install --user-install bundler-audit
+
+Fetching: thor-1.0.1.gem (100%)
+WARNING:  You don't have /root/.gem/ruby/2.5.0/bin in your PATH,
+          gem executables will not run.
+Successfully installed thor-1.0.1
+Fetching: bundler-2.1.4.gem (100%)
+Successfully installed bundler-2.1.4
+Fetching: bundler-audit-0.7.0.1.gem (100%)
+Successfully installed bundler-audit-0.7.0.1
+Parsing documentation for thor-1.0.1
+Installing ri documentation for thor-1.0.1
+Parsing documentation for bundler-2.1.4
+Installing ri documentation for bundler-2.1.4
+Parsing documentation for bundler-audit-0.7.0.1
+Installing ri documentation for bundler-audit-0.7.0.1
+Done installing documentation for thor, bundler, bundler-audit after 5 seconds
+
+We will add the tool to the PATH, so we can refer it on the command line.
+
+export PATH="~/.gem/ruby/2.6.0/bin/:$PATH"
+
+We have successfully installed bundler-audit, let’s move to the next step.
+
+
+
+Run the OAST/SCA Scan
+
+The idea here is to show you that the tools are not perfect, installation steps might break and even simple things won’t work in a predictable manner.
+
+Let’s perform the SCA scan on our code with the following command.
+
+bundle-audit
+
+Name: actionpack
+Version: 6.0.0
+Advisory: CVE-2020-8166
+Criticality: Unknown
+URL: https://groups.google.com/forum/#!topic/rubyonrails-security/NOjKiGeXUgw
+Title: Ability to forge per-form CSRF tokens given a global CSRF token
+Solution: upgrade to ~> 5.2.4.3, >= 6.0.3.1
+
+Name: actionpack
+Version: 6.0.0
+Advisory: CVE-2020-8164
+Criticality: Unknown
+URL: https://groups.google.com/forum/#!topic/rubyonrails-security/f6ioe4sdpbY
+Title: Possible Strong Parameters Bypass in ActionPack
+Solution: upgrade to ~> 5.2.4.3, >= 6.0.3.1
+
+Name: actionview
+Version: 6.0.0
+Advisory: CVE-2020-5267
+Criticality: Unknown
+URL: https://groups.google.com/forum/#!topic/rubyonrails-security/55reWMM_Pg8
+Title: Possible XSS vulnerability in ActionView
+Solution: upgrade to >= 5.2.4.2, ~> 5.2.4, >= 6.0.2.2
+
+Name: actionview
+Version: 6.0.0
+Advisory: CVE-2020-8167
+Criticality: Unknown
+URL: https://groups.google.com/forum/#!topic/rubyonrails-security/x9DixQDG9a0
+Title: CSRF Vulnerability in rails-ujs
+Solution: upgrade to ~> 5.2.4.3, >= 6.0.3.1
+
+Name: activestorage
+Version: 6.0.0
+Advisory: CVE-2020-8162
+Criticality: Unknown
+URL: https://groups.google.com/forum/#!topic/rubyonrails-security/PjU3946mreQ
+Title: Circumvention of file size limits in ActiveStorage
+Solution: upgrade to ~> 5.2.4.3, >= 6.0.3.1
+
+Name: activesupport
+Version: 6.0.0
+Advisory: CVE-2020-8165
+Criticality: Unknown
+URL: https://groups.google.com/forum/#!topic/rubyonrails-security/bv6fW4S0Y1c
+Title: Potentially unintended unmarshalling of user-provided objects in MemCacheStore and RedisCacheStore
+Solution: upgrade to ~> 5.2.4.3, >= 6.0.3.1
+
+Name: json
+Version: 2.2.0
+Advisory: CVE-2020-10663
+Criticality: Unknown
+URL: https://www.ruby-lang.org/en/news/2020/03/19/json-dos-cve-2020-10663/
+Title: json Gem for Ruby Unsafe Object Creation Vulnerability (additional fix)
+Solution: upgrade to >= 2.3.0
+
+Name: nokogiri
+Version: 1.10.5
+Advisory: CVE-2020-7595
+Criticality: High
+URL: https://github.com/sparklemotion/nokogiri/issues/1992
+Title: libxml2 2.9.10 has an infinite loop in a certain end-of-file situation
+Solution: upgrade to >= 1.10.8
+
+Name: puma
+Version: 4.2.1
+Advisory: CVE-2020-11077
+Criticality: Medium
+URL: https://github.com/puma/puma/security/advisories/GHSA-w64w-qqph-5gxm
+Title: HTTP Smuggling via Transfer-Encoding Header in Puma
+Solution: upgrade to ~> 3.12.6, >= 4.3.5
+
+Name: puma
+Version: 4.2.1
+Advisory: CVE-2019-16770
+Criticality: High
+URL: https://github.com/puma/puma/security/advisories/GHSA-7xx3-m584-x994
+Title: Keepalive thread overload/DoS in puma
+Solution: upgrade to ~> 3.12.2, >= 4.3.1
+
+Name: puma
+Version: 4.2.1
+Advisory: CVE-2020-5249
+Criticality: Medium
+URL: https://github.com/puma/puma/security/advisories/GHSA-33vf-4xgg-9r58
+Title: HTTP Response Splitting (Early Hints) in Puma
+Solution: upgrade to ~> 3.12.4, >= 4.3.3
+
+Name: puma
+Version: 4.2.1
+Advisory: CVE-2020-11076
+Criticality: High
+URL: https://github.com/puma/puma/security/advisories/GHSA-x7jg-6pwg-fx5h
+Title: HTTP Smuggling via Transfer-Encoding Header in Puma
+Solution: upgrade to ~> 3.12.5, >= 4.3.4
+
+Name: puma
+Version: 4.2.1
+Advisory: CVE-2020-5247
+Criticality: Medium
+URL: https://github.com/puma/puma/security/advisories/GHSA-84j7-475p-hp8v
+Title: HTTP Response Splitting vulnerability in puma
+Solution: upgrade to ~> 3.12.4, >= 4.3.3
+
+Name: rack
+Version: 2.0.7
+Advisory: CVE-2020-8161
+Criticality: Unknown
+URL: https://groups.google.com/forum/#!topic/ruby-security-ann/T4ZIsfRf2eA
+Title: Directory traversal in Rack::Directory app bundled with Rack
+Solution: upgrade to ~> 2.1.3, >= 2.2.0
+
+Name: rack
+Version: 2.0.7
+Advisory: CVE-2019-16782
+Criticality: Unknown
+URL: https://github.com/rack/rack/security/advisories/GHSA-hrqr-hxpp-chr3
+Title: Possible information leak / session hijack vulnerability
+Solution: upgrade to ~> 1.6.12, >= 2.0.8
+
+Name: websocket-extensions
+Version: 0.1.4
+Advisory: CVE-2020-7663
+Criticality: High
+URL: https://github.com/faye/websocket-extensions-ruby/security/advisories/GHSA-g6wq-qcwm-j5g2
+Title: Regular Expression Denial of Service in websocket-extensions (RubyGem)
+Solution: upgrade to >= 0.1.5
+
+Vulnerabilities found!
+
+As you can see there are several vulnerabilities in our Rails application.
+Exercise:
+
+    Use appropriate bundler-audit options/flags to satisfy all requirements of DevSecOps Gospel.
+    Share the command with the staff once done.
+
+
+
