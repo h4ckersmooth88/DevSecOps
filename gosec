@@ -1,0 +1,38 @@
+
+image: docker:latest
+
+services:
+  - docker:dind
+
+stages:
+  - build
+  - test
+  - release
+  - preprod
+  - integration
+  - prod
+
+sast:
+  stage: build
+  image: golang:1.15-alpine
+  before_script:
+    - go get github.com/securego/gosec/v2/cmd/gosec
+  script:
+    - gosec -fmt json -out gosec-output.json /src/... 
+  artifacts:
+    paths: [gosec-output.json]
+    when: always
+  allow_failure: true
+
+integration:
+  stage: integration
+  script:
+    - echo "This is an integration step"
+    - exit 1
+  allow_failure: true # Even if the job fails, continue to the next stages
+
+prod:
+  stage: prod
+  script:
+    - echo "This is a deploy step"
+  when: manual # Continuous Delivery
