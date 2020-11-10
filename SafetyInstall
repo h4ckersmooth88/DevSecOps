@@ -1,0 +1,169 @@
+
+Download the source code
+
+We will do all the exercises locally first in DevSecOps-Box, so lets start the exercise.
+
+First, we need to download the source code of the project from our git repository.
+
+git clone https://gitlab.practical-devsecops.training/pdso/django.nv webapp
+
+Lets cd into the application code, so we can scan the app.
+
+cd webapp
+
+We are now in the webapp directory.
+
+
+
+Install Safety Tool
+
+    Safety checks your installed dependencies for known security vulnerabilities.
+
+    By default, it uses the open Python vulnerability database Safety DB but can be upgraded to use pyup.io’s Safety API using the –key option.
+
+    Source: Safety Website
+
+    You can find more details about the project at https://github.com/pyupio/safety
+
+Let’s install the safety tool on the system to scan the python dependencies.
+
+pip3 install safety
+
+Collecting safety
+  Downloading https://files.pythonhosted.org/packages/00/a0/279469af77d9e12f51ad2ff4ad5b7fb492f26667e47fd021bcc1991ed2d7/safety-1.9.0-py2.py3-none-any.whl
+Collecting Click>=6.0 (from safety)
+  Downloading https://files.pythonhosted.org/packages/d2/3d/fa76db83bf75c4f8d338c2fd15c8d33fdd7ad23a9b5e57eb6c5de26b430e/click-7.1.2-py2.py3-none-any.whl (82kB)
+    100% |████████████████████████████████| 92kB 2.9MB/s 
+Collecting packaging (from safety)
+  Downloading https://files.pythonhosted.org/packages/46/19/c5ab91b1b05cfe63cccd5cfc971db9214c6dd6ced54e33c30d5af1d2bc43/packaging-20.4-py2.py3-none-any.whl
+Requirement already satisfied: setuptools in /usr/lib/python3/dist-packages (from safety)
+Collecting dparse>=0.5.1 (from safety)
+  Downloading https://files.pythonhosted.org/packages/7e/9c/ff5e37350c75056667f2de633fc20ea68720204230d1d67e82226a45419a/dparse-0.5.1-py3-none-any.whl
+Collecting requests (from safety)
+  Downloading https://files.pythonhosted.org/packages/1a/70/1935c770cb3be6e3a8b78ced23d7e0f3b187f5cbfab4749523ed65d7c9b1/requests-2.23.0-py2.py3-none-any.whl (58kB)
+    100% |████████████████████████████████| 61kB 3.2MB/s 
+Collecting pyparsing>=2.0.2 (from packaging->safety)
+  Downloading https://files.pythonhosted.org/packages/8a/bb/488841f56197b13700afd5658fc279a2025a39e22449b7cf29864669b15d/pyparsing-2.4.7-py2.py3-none-any.whl (67kB)
+    100% |████████████████████████████████| 71kB 3.4MB/s 
+Requirement already satisfied: six in /usr/lib/python3/dist-packages (from packaging->safety)
+Collecting toml (from dparse>=0.5.1->safety)
+  Downloading https://files.pythonhosted.org/packages/9f/e1/1b40b80f2e1663a6b9f497123c11d7d988c0919abbf3c3f2688e448c5363/toml-0.10.1-py2.py3-none-any.whl
+
+Lets explore what options safety provides us.
+
+safety check --help
+
+
+Usage: safety check [OPTIONS]
+
+Options:
+  --key TEXT                      API Key for pyup.io's vulnerability
+                                  database. Can be set as SAFETY_API_KEY
+                                  environment variable. Default: empty
+
+  --db TEXT                       Path to a local vulnerability database.
+                                  Default: empty
+
+  --json / --no-json              Output vulnerabilities in JSON format.
+                                  Default: --no-json
+
+  --full-report / --short-report  Full reports include a security advisory (if
+                                  available). Default: --short-report
+
+  --bare / --not-bare             Output vulnerable packages only. Useful in
+                                  combination with other tools.Default: --not-
+                                  bare
+
+  --cache / --no-cache            Cache requests to the vulnerability database
+                                  locally. Default: --no-cache
+
+  --stdin / --no-stdin            Read input from stdin. Default: --no-stdin
+  -r, --file FILENAME             Read input from one (or multiple)
+                                  requirement files. Default: empty
+
+  -i, --ignore TEXT               Ignore one (or multiple) vulnerabilities by
+                                  ID. Default: empty
+
+  -o, --output TEXT               Path to where output file will be placed.
+                                  Default: empty
+
+  -ph, --proxy-host TEXT          Proxy host IP or DNS --proxy-host
+  -pp, --proxy-port INTEGER       Proxy port number --proxy-port
+  -pr, --proxy-protocol TEXT      Proxy protocol (https or http) --proxy-
+                                  protocol
+
+  --help                          Show this message and exit.
+
+Let’s move to the next step.
+
+
+Run the Scanner
+
+As we have learned in the DevSecOps Gospel we should save the output in a machine-readable format.
+
+We are using tee command to show the output and store it a file simultaneously
+
+safety check -r requirements.txt --json | tee safety_output.json
+
+    -r flag used to specify the input file.
+    --json flag tells that output should be in the JSON format.
+
+[
+    [
+        "django",
+        "<1.11.27",
+        "1.8.3",
+        "Django before 1.11.27, 2.x before 2.2.9, and 3.x before 3.0.1 allows account takeover. A suitably crafted email address (that is equal to an existing user's email address after case transformation of Unicode characters) would allow an attacker to be sent a password reset token for the matched user account. (One mitigation in the new releases is to send password reset tokens only to the registered user email address.) See CVE-2019-19844.",
+        "37771"
+    ],
+    [
+        "django",
+        "<1.8.10",
+        "1.8.3",
+        "The password hasher in contrib/auth/hashers.py in Django before 1.8.10 and 1.9.x before 1.9.3 allows remote attackers to enumerate users via a timing attack involving login requests.",
+        "33074"
+    ],
+    [
+        "django",
+        "<1.8.10",
+        "1.8.3",
+        "The utils.http.is_safe_url function in Django before 1.8.10 and 1.9.x before 1.9.3 allows remote attackers to redirect users to arbitrary web sites and conduct phishing attacks or possibly conduct cross-site scripting (XSS) attacks via a URL containing basic authentication, as demonstrated by http://mysite.example.com\\@attacker.com.",
+        "33073"
+    ],
+    [
+        "django",
+        "<1.8.15",
+        "1.8.3",
+        "The cookie parsing code in Django before 1.8.15 and 1.9.x before 1.9.10, when used on a site with Google Analytics, allows remote attackers to bypass an intended CSRF protection mechanism by setting arbitrary cookies.",
+        "25718"
+    ],
+    [
+        "django",
+        ">=1.8,<1.8.16",
+        "1.8.3",
+        "Django before 1.8.x before 1.8.16, 1.9.x before 1.9.11, and 1.10.x before 1.10.3, when settings.DEBUG is True, allow remote attackers to conduct DNS rebinding attacks by leveraging failure to validate the HTTP Host header against settings.ALLOWED_HOSTS.",
+        "33075"
+    ],
+    [
+        "django",
+        ">=1.8,<1.8.16",
+        "1.8.3",
+        "Django 1.8.x before 1.8.16, 1.9.x before 1.9.11, and 1.10.x before 1.10.3 use a hardcoded password for a temporary database user created when running tests with an Oracle database, which makes it easier for remote attackers to obtain access to the database server by leveraging failure to manually specify a password in the database settings TEST dictionary.",
+        "33076"
+    ],
+    [
+        "django",
+        ">=1.8,<1.8.18",
+        "1.8.3",
+        "Django 1.8.18 fixes two security issues in 1.8.17.\r\n\r\nCVE-2017-7233: Open redirect and possible XSS attack via user-supplied numeric redirect URLs\r\n============================================================================================\r\n\r\nDjango relies on user input in some cases  (e.g.\r\n:func:`django.contrib.auth.views.login` and :doc:`i18n </topics/i18n/index>`)\r\nto redirect the user to an \"on success\" URL. The security check for these\r\nredirects (namely ``django.utils.http.is_safe_url()``) considered some numeric\r\nURLs (e.g. ``http:999999999``) \"safe\" when they shouldn't be.\r\n\r\nAlso, if a developer relies on ``is_safe_url()`` to provide safe redirect\r\ntargets and puts such a URL into a link, they could suffer from an XSS attack.\r\n\r\nCVE-2017-7234: Open redirect vulnerability in ``django.views.static.serve()``\r\n=============================================================================\r\n\r\nA maliciously crafted URL to a Django site using the\r\n:func:`~django.views.static.serve` view could redirect to any other domain. The\r\nview no longer does any redirects as they don't provide any known, useful\r\nfunctionality.\r\n\r\nNote, however, that this view has always carried a warning that it is not\r\nhardened for production use and should be used only as a development aid.",
+        "33301"
+    ],
+    [
+        "django",
+        ">=1.8,<1.8.19",
+        "1.8.3",
+        "The ``django.utils.html.urlize()`` function was extremely slow to evaluate\r\ncertain inputs due to a catastrophic backtracking vulnerability in a regular\r\nexpression. The ``urlize()`` function is used to implement the ``urlize`` and\r\n``urlizetrunc`` template filters, which were thus vulnerable.\r\n\r\nThe problematic regular expression is replaced with parsing logic that behaves\r\nsimilarly.",
+        "35797"
+    ],
+
+As you can see, we found considerable security issues in third party components.
