@@ -1,0 +1,94 @@
+
+Download the source code
+
+We will do all the exercises locally first in DevSecOps-Box, so let’s start the exercise.
+
+    njsscan is a semantic aware SAST tool that can find insecure code patterns in your Node.js applications using a simple pattern matcher from libsast and pattern search tool like semgrep (lightweight static analysis for many languages).
+
+    You can find more details about the project at https://github.com/ajinabraham/njsscan
+
+First, We need to download the source code of the project from our git repository.
+
+git clone https://github.com/OWASP/NodeGoat.git webapp
+
+Lets cd into the application so we can scan the app.
+
+cd webapp
+
+We are now in the webapp directory.
+
+
+
+
+Install njsscan Tool
+
+Let’s install njsscan on the system to perform static analysis.
+
+pip install --quiet njsscan
+
+We have successfully installed njsscan, lets explore the functionality it provides us.
+
+njsscan --help
+
+usage: njsscan [-h] [--json] [--sonarqube] [-o OUTPUT] [--missing-controls]
+               [-w] [-v]
+               [path [path ...]]
+
+positional arguments:
+  path                  Path can be file(s) or directories with source code
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --json                set output format as JSON
+  --sonarqube           set output format compatible with SonarQube
+  -o OUTPUT, --output OUTPUT
+                        output filename to save the result
+  --missing-controls    enable missing security controls check
+  -w, --exit-warning    non zero exit code on warning
+  -v, --version         show njsscan version
+
+Let’s move to the next step.
+
+
+
+Run the scanner
+
+As we have learned in DevSecOps Gospel, we would like to store the content in a JSON file.
+
+njsscan --json -o output.json /webapp
+
+njsscan ran successfully and it found some security issues and false positives.
+
+  ...
+  ...
+      "metadata": {
+        "cwe": "CWE-522: Insufficiently Protected Credentials",
+        "description": "Default session middleware settings: `httpOnly` not set. It ensures the sensitive cookies cannot be accessed by client side JavaScript and helps to protect against cross-site scripting attacks.",
+        "owasp": "A2: Broken Authentication",
+        "severity": "WARNING"
+      }
+    },
+    "cookie_session_no_path": {
+      "files": [
+        {
+          "file_path": "/NodeGoat/server.js",
+          "match_lines": [
+            78,
+            102
+          ],
+          "match_position": [
+            13,
+            7
+          ],
+          "match_string": "    app.use(session({\n        // genid: (req) => {\n        //    return genuuid() // use UUIDs for session IDs\n        //},\n        secret: cookieSecret,\n        // Both mandatory in Express v4\n        saveUninitialized: true,\n        resave: true\n        /*\n        // Fix for A5 - Security MisConfig\n        // Use generic cookie name\n        key: \"sessionId\",\n        */\n\n        /*\n        // Fix for A3 - XSS\n        // TODO: Add \"maxAge\"\n        cookie: {\n            httpOnly: true\n            // Remember to start an HTTPS server to get this working\n            // secure: true\n        }\n        */\n\n    }));"
+        }
+      ],
+  ...
+  ...
+
+Exercise
+
+    Use appropriate njsscan options to reduce false positives.
+    Ensure it follows all DevSecOps Gospel Practices.
+    How would you embed this in CI pipeline?
+
