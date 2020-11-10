@@ -1,0 +1,177 @@
+
+Download the source code
+
+We will do all the exercises locally first in DevSecOps-Box, so lets start the exercise.
+
+First, We need to download the source code of the project from our git repository.
+
+git clone https://github.com/OWASP/NodeGoat.git webapp
+
+Lets cd into the application code so we can scan the app.
+
+cd webapp
+
+We are now in the webapp directory.
+
+Let’s move to the next step.
+
+
+
+Install NPM
+
+    NPM has security build in since npm@6, this command allow you to analyze dependencies in your existing code to identify insecure dependencies, have a good security report, and also easy to implement it into CI/CD pipeline without install any packages except NPM itself.
+
+We will install Node JS and also NPM with the following command.
+
+curl -sL https://deb.nodesource.com/setup_10.x | bash -
+
+apt install nodejs -y
+
+npm audit tool is part of npm and it gets installed when you install node.js. Let’s check the help menu of npm audit to understand its feature set.
+
+npm audit -h
+
+/webapp# npm audit -h
+npm audit [--json] [--production]
+npm audit fix [--force|--package-lock-only|--dry-run|--production|--only=(dev|prod)]
+
+    Which options would you choose from this list?
+
+Let’s move to the next step.
+
+
+
+Run the Scanner
+
+We can run the basic command without any extra arguments however the output is not suitable for machine or CI/CD pipeline.
+
+npm audit
+
+                       === npm audit security report ===                        
+
+# Run  npm install --save-dev mocha@8.1.3  to resolve 4 vulnerabilities
+SEMVER WARNING: Recommended action is a potentially breaking change
+┌───────────────┬──────────────────────────────────────────────────────────────┐
+│ High          │ Regular Expression Denial of Service                         │
+├───────────────┼──────────────────────────────────────────────────────────────┤
+│ Package       │ minimatch                                                    │
+├───────────────┼──────────────────────────────────────────────────────────────┤
+│ Dependency of │ mocha [dev]                                                  │
+├───────────────┼──────────────────────────────────────────────────────────────┤
+│ Path          │ mocha > glob > minimatch                                     │
+├───────────────┼──────────────────────────────────────────────────────────────┤
+│ More info     │ https://npmjs.com/advisories/118                             │
+└───────────────┴──────────────────────────────────────────────────────────────┘
+
+
+┌───────────────┬──────────────────────────────────────────────────────────────┐
+│ Critical      │ Command Injection                                            │
+├───────────────┼──────────────────────────────────────────────────────────────┤
+│ Package       │ growl                                                        │
+├───────────────┼──────────────────────────────────────────────────────────────┤
+│ Dependency of │ mocha [dev]                                                  │
+├───────────────┼──────────────────────────────────────────────────────────────┤
+│ Path          │ mocha > growl                                                │
+├───────────────┼──────────────────────────────────────────────────────────────┤
+│ More info     │ https://npmjs.com/advisories/146                             │
+└───────────────┴──────────────────────────────────────────────────────────────┘
+
+
+┌───────────────┬──────────────────────────────────────────────────────────────┐
+│ Low           │ Regular Expression Denial of Service                         │
+├───────────────┼──────────────────────────────────────────────────────────────┤
+│ Package       │ debug                                                        │
+├───────────────┼──────────────────────────────────────────────────────────────┤
+│ Dependency of │ mocha [dev]                                                  │
+├───────────────┼──────────────────────────────────────────────────────────────┤
+│ Path          │ mocha > debug                                                │
+├───────────────┼──────────────────────────────────────────────────────────────┤
+│ More info     │ https://npmjs.com/advisories/534                             │
+└───────────────┴──────────────────────────────────────────────────────────────┘
+
+
+┌───────────────┬──────────────────────────────────────────────────────────────┐
+│ Low           │ Prototype Pollution                                          │
+├───────────────┼──────────────────────────────────────────────────────────────┤
+│ Package       │ minimist                                                     │
+├───────────────┼──────────────────────────────────────────────────────────────┤
+│ Dependency of │ mocha [dev]                                                  │
+├───────────────┼──────────────────────────────────────────────────────────────┤
+│ Path          │ mocha > mkdirp > minimist                                    │
+├───────────────┼──────────────────────────────────────────────────────────────┤
+│ More info     │ https://npmjs.com/advisories/1179                            │
+└───────────────┴──────────────────────────────────────────────────────────────┘
+...
+...
+
+As we can see, the basic command gives us the report in a table format
+
+    As we have learned in the DevSecOps Gospel, we should save the output in a machine-readable format so the output can be parsed by the machines.
+
+We can save the output in JSON format using –json flag.
+
+npm audit --json | tee results.json
+
+....................SNIP...............................
+    "1543": {
+      "findings": [
+        {
+          "version": "3.10.10",
+          "paths": [
+            "grunt-npm-install>npm"
+          ]
+        }
+      ],
+      "id": 1543,
+      "created": "2020-07-07T19:03:09.977Z",
+      "updated": "2020-07-07T19:06:00.551Z",
+      "deleted": null,
+      "title": "Sensitive Data Exposure",
+      "found_by": {
+        "link": "",
+        "name": "Unknown",
+        "email": ""
+      },
+      "reported_by": {
+        "link": "",
+        "name": "Unknown",
+        "email": ""
+      },
+      "module_name": "npm",
+      "cves": [
+        "CVE-2020-15095"
+      ],
+      "vulnerable_versions": "<6.14.6",
+      "patched_versions": ">=6.14.6",
+      "overview": "Versions of the npm CLI prior to 6.14.6 are vulnerable to an information exposure vulnerability through log files. The CLI supports URLs like `<protocol>://[<user>[:<password>]@]<hostname>[:<port>][:][/]<path>`. The password value is not redacted and is printed to stdout and also to any generated log files.",
+      "recommendation": "Upgrade to version 6.14.6 or later.",
+      "references": "- [GitHub Advisory](https://github.com/npm/cli/security/advisories/GHSA-93f3-23rq-pjfp)",
+      "access": "public",
+      "severity": "low",
+      "cwe": "CWE-532",
+      "metadata": {
+        "module_type": "",
+        "exploitability": 3,
+        "affected_components": ""
+      },
+      "url": "https://npmjs.com/advisories/1543"
+    }
+  },
+  "muted": [],
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 358,
+      "moderate": 79,
+      "high": 172,
+      "critical": 2
+    },
+    "dependencies": 395,
+    "devDependencies": 997,
+    "optionalDependencies": 121,
+    "totalDependencies": 1460
+  },
+  "runId": "1d15dec6-f377-48c3-921f-1e789b43d907"
+}
+
+There you go. Why don’t you embed npm audit in CI/CD pipeline?
