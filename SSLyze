@@ -1,0 +1,415 @@
+
+Learn how to run SSLyze to find SSL/TLS misconfigurations.
+
+In this scenario, you will learn how to install SSLyze to scan a website for SSL misconfiguration and issues.
+
+You will need to install the SSLyze tool and then run the tool scan for SSL misconfiguration.
+
+
+
+Install DAST Tool
+
+    SSLyze is a fast and powerful SSL/TLS scanning library.
+
+    It allows you to analyze the SSL/TLS configuration of a server by connecting to it, in order to detect various issues (bad certificate, weak cipher suites, Heartbleed, ROBOT, TLS 1.3 support, etc.).
+
+    SSLyze can either be used as command line tool or as a Python library.
+
+Source SSLyze Github
+
+Let’s install the SSlyze on the system to perform Dynamic analysis.
+
+pip3 install sslyze
+
+
+Collecting sslyze
+  Downloading https://files.pythonhosted.org/packages/00/fb/56ccb9c9ab28027f9cedc5b80f3a66a42b73e1310c42eae15da01418c1de/sslyze-2.1.4.tar.gz (1.1MB)
+    100% |################################| 1.1MB 1.0MB/s 
+Collecting nassl<2.3.0,>=2.2.0 (from sslyze)
+  Downloading https://files.pythonhosted.org/packages/1c/59/2aa9ab432a09e0814231b52cd2dd030d7b308d7288ffcc8493a2bdb957db/nassl-2.2.0-cp36-cp36m-manylinux1_x86_64.whl (3.1MB)
+    100% |################################| 3.1MB 400kB/s 
+Collecting cryptography==2.5 (from sslyze)
+  Downloading https://files.pythonhosted.org/packages/98/71/e632e222f34632e0527dd41799f7847305e701f38f512d81bdf96009bca4/cryptography-2.5-cp34-abi3-manylinux1_x86_64.whl (2.4MB)
+    100% |################################| 2.4MB 506kB/s 
+Collecting tls-parser<1.3.0,>=1.2.0 (from sslyze)
+  Downloading https://files.pythonhosted.org/packages/49/c4/aa379256eb83469154c671b700b3edb42ae781044a4cd40ae92bff8259c7/tls_parser-1.2.1.tar.gz
+Collecting dataclasses (from sslyze)
+  Downloading https://files.pythonhosted.org/packages/e1/d2/6f02df2616fd4016075f60157c7a0452b38d8f7938ae94343911e0fb0b09/dataclasses-0.7-py3-none-any.whl
+Collecting six>=1.4.1 (from cryptography==2.5->sslyze)
+  Downloading https://files.pythonhosted.org/packages/ee/ff/48bde5c0f013094d729fe4b0316ba2a24774b3ff1c52d924a8a4cb04078a/six-1.15.0-py2.py3-none-any.whl
+Collecting asn1crypto>=0.21.0 (from cryptography==2.5->sslyze)
+  Downloading https://files.pythonhosted.org/packages/e9/51/1db4a60049fb7390959be586b6eb743098e6cea3f6b2d3ed9e17fec62ba2/asn1crypto-1.3.0-py2.py3-none-any.whl (103kB)
+    100% |################################| 112kB 3.7MB/s 
+Collecting cffi!=1.11.3,>=1.8 (from cryptography==2.5->sslyze)
+  Downloading https://files.pythonhosted.org/packages/f1/c7/72abda280893609e1ddfff90f8064568bd8bcb2c1770a9d5bb5edb2d1fea/cffi-1.14.0-cp36-cp36m-manylinux1_x86_64.whl (399kB)
+    100% |################################| 399kB 1.7MB/s 
+Collecting pycparser (from cffi!=1.11.3,>=1.8->cryptography==2.5->sslyze)
+  Downloading https://files.pythonhosted.org/packages/ae/e7/d9c3a176ca4b02024debf82342dab36efadfc5776f9c8db077e8f6e71821/pycparser-2.20-py2.py3-none-any.whl (112kB)
+    100% |################################| 112kB 4.5MB/s 
+Installing collected packages: nassl, six, asn1crypto, pycparser, cffi, cryptography, tls-parser, dataclasses, sslyze
+  Running setup.py install for tls-parser ... done
+  Running setup.py install for sslyze ... done
+Successfully installed asn1crypto-1.3.0 cffi-1.14.0 cryptography-2.5 dataclasses-0.7 nassl-2.2.0 pycparser-2.20 six-1.15.0 sslyze-2.1.4 tls-parser-1.2.1
+
+We have successfully installed SSLyze scanner, let’s explore the functionality it provides us.
+
+sslyze --help
+
+
+Usage: sslyze [options] target1.com target2.com:443 target3.com:443{ip} etc...
+
+Options:
+  --version             show program's version number and exit
+  -h, --help            show this help message and exit
+  --regular             Regular HTTPS scan; shortcut for --sslv2 --sslv3
+                        --tlsv1 --tlsv1_1 --tlsv1_2 --tlsv1_3 --reneg --resum
+                        --certinfo --http_get --hide_rejected_ciphers
+                        --compression --heartbleed --openssl_ccs --fallback
+                        --robot
+
+  Trust stores options:
+    --update_trust_stores
+                        Update the default trust stores used by SSLyze. The
+                        latest stores will be downloaded from https://github.c
+                        om/nabla-c0d3/trust_stores_observatory. This option is
+                        meant to be used separately, and will silence any
+                        other command line option supplied to SSLyze.
+
+  Client certificate options:
+    --cert=CERT         Client certificate chain filename. The certificates
+                        must be in PEM format and must be sorted starting with
+                        the subject's client certificate, followed by
+                        intermediate CA certificates if applicable.
+    --key=KEY           Client private key filename.
+    --keyform=KEYFORM   Client private key format. DER or PEM (default).
+    --pass=KEYPASS      Client private key passphrase.
+
+  Input and output options:
+    --xml_out=XML_FILE  Write the scan results as an XML document to the file
+                        XML_FILE. If XML_FILE is set to "-", the XML output
+                        will instead be printed to stdout. The corresponding
+                        XML Schema Definition is available at
+                        ./docs/xml_out.xsd
+    --json_out=JSON_FILE
+                        Write the scan results as a JSON document to the file
+                        JSON_FILE. If JSON_FILE is set to "-", the JSON output
+                        will instead be printed to stdout. The resulting JSON
+                        file is a serialized version of the ScanResult objects
+                        described in SSLyze's Python API: the nodes and
+                        attributes will be the same. See https://nabla-c0d3.gi
+                        thub.io/sslyze/documentation/available-scan-
+                        commands.html for more details.
+    --targets_in=TARGETS_IN
+                        Read the list of targets to scan from the file
+                        TARGETS_IN. It should contain one host:port per line.
+    --quiet             Do not output anything to stdout; useful when using
+                        --xml_out or --json_out.
+
+  Connectivity options:
+    --slow_connection   Greatly reduce the number of concurrent connections
+                        initiated by SSLyze. This will make the scans slower
+                        but more reliable if the connection between your host
+                        and the server is slow, or if the server cannot handle
+                        many concurrent connections. Enable this option if you
+                        are getting a lot of timeouts or errors.
+    --https_tunnel=HTTPS_TUNNEL
+                        Tunnel all traffic to the target server(s) through an
+                        HTTP CONNECT proxy. HTTP_TUNNEL should be the proxy's
+                        URL: 'http://USER:PW@HOST:PORT/'. For proxies
+                        requiring authentication, only Basic Authentication is
+                        supported.
+    --starttls=STARTTLS
+                        Perform a StartTLS handshake when connecting to the
+                        target server(s). StartTLS should be one of: smtp ,
+                        xmpp , xmpp_server , pop3 , ftp , imap , ldap , rdp ,
+                        postgres , auto. The 'auto' option will cause SSLyze
+                        to deduce the protocol (ftp, imap, etc.) from the
+                        supplied port number, for each target servers.
+    --xmpp_to=XMPP_TO   Optional setting for STARTTLS XMPP. XMPP_TO should be
+                        the hostname to be put in the 'to' attribute of the
+                        XMPP stream. Default is the server's hostname.
+    --sni=SNI           Use Server Name Indication to specify the hostname to
+                        connect to.  Will only affect TLS 1.0+ connections.
+
+  SessionRenegotiationPlugin:
+    Test the server(s)' implementation of session renegotiation.
+
+    --reneg             Test the server(s) for client-initiated renegotiation
+                        and secure renegotiation support.
+
+  HeartbleedPlugin:
+    Test the server(s) for the OpenSSL Heartbleed vulnerability
+    (CVE-2014-0160).
+
+    --heartbleed        Test the server(s) for the OpenSSL Heartbleed
+                        vulnerability.
+
+  SessionResumptionPlugin:
+    Analyze the server(s) SSL session resumption capabilities.
+
+    --resum             Test the server(s) for session resumption support
+                        using session IDs and TLS session tickets (RFC 5077).
+    --resum_rate        Perform 100 session ID resumptions with the server(s),
+                        in order to estimate the rate for successful
+                        resumptions.
+
+  OpenSslCcsInjectionPlugin:
+    Test the server(s) for the OpenSSL CCS injection vulnerability
+    (CVE-2014-0224).
+
+    --openssl_ccs       Test the server(s) for the OpenSSL CCS injection
+                        vulnerability (CVE-2014-0224).
+
+  CertificateInfoPlugin:
+    Retrieve and validate the server(s)' certificate chain.
+
+    --certinfo          Verify the validity of the server(s) certificate(s)
+                        against various trust stores (Mozilla, Apple, etc.),
+                        and     check for OCSP stapling support.
+    --ca_file=CA_FILE   Path to a local trust store file (with root
+                        certificates in PEM format) to verify the validity of
+                        the server(s) certificate's chain(s) against.
+
+  EarlyDataPlugin:
+    Test the server(s) for TLS 1.3 early data support.      This plugin
+    will only work for HTTPS servers; other TLS servers (SMTP, POP3, etc.)
+    are not supported.
+
+    --early_data        Test the server(s) for TLS 1.3 early data support.
+
+  RobotPlugin:
+    Test the server(s) for the Return Of Bleichenbacher's Oracle Threat
+    vulnerability.
+
+    --robot             Test the server(s) for the Return Of Bleichenbacher's
+                        Oracle Threat vulnerability.
+
+  HttpHeadersPlugin:
+    Test the server(s) for the presence of security-related HTTP headers.
+
+    --http_headers      Check for the HTTP Strict Transport Security (HSTS)
+                        and HTTP Public Key Pinning (HPKP) HTTP headers within
+                        the     response sent back by the server(s). Also
+                        compute the HPKP pins for the server(s)' current
+                        certificate chain.
+
+  FallbackScsvPlugin:
+    Test the server(s) for support of the TLS_FALLBACK_SCSV cipher suite
+    which prevents downgrade attacks.
+
+    --fallback          Test the server(s) for support of the
+                        TLS_FALLBACK_SCSV cipher suite which prevents
+                        downgrade attacks.
+
+  OpenSslCipherSuitesPlugin:
+    Scan the server(s) for supported OpenSSL cipher suites.
+
+    --sslv2             List the SSL 2.0 OpenSSL cipher suites supported by
+                        the server(s).
+    --sslv3             List the SSL 3.0 OpenSSL cipher suites supported by
+                        the server(s).
+    --tlsv1             List the TLS 1.0 OpenSSL cipher suites supported by
+                        the server(s).
+    --tlsv1_1           List the TLS 1.1 OpenSSL cipher suites supported by
+                        the server(s).
+    --tlsv1_2           List the TLS 1.2 OpenSSL cipher suites supported by
+                        the server(s).
+    --tlsv1_3           List the TLS 1.3 OpenSSL cipher suites supported by
+                        the server(s).
+    --http_get          Option - For each cipher suite, sends an HTTP GET
+                        request after completing the SSL handshake and returns
+                        the HTTP status code.
+    --hide_rejected_ciphers
+                        Option - Hides the (usually long) list of cipher
+                        suites that were rejected by the server(s).
+
+  CompressionPlugin:
+    Test the server(s) for Zlib compression support.
+
+    --compression       Test the server(s) for Zlib compression support.
+
+Let’s move to the next step.
+
+
+
+Run the Scanner
+
+As we have learned in the DevSecOps Gospel we should save the output in the machine-readable format so that It can be parsed by the computers easily.
+
+Let’s run sslyze with the following options.
+
+sslyze --regular --json_out sslyze-output.json prod-lpwqkzdu.lab.practical-devsecops.training:443
+
+Note, we are using the target as prod-lpwqkzdu.lab.practical-devsecops.training:443
+
+    –regular flag used to tells tool to perform Regular HTTPS scan
+    –json_out flag used to store the output in the json format
+
+
+ AVAILABLE PLUGINS
+ -----------------
+
+  HeartbleedPlugin
+  SessionResumptionPlugin
+  CertificateInfoPlugin
+  EarlyDataPlugin
+  OpenSslCipherSuitesPlugin
+  HttpHeadersPlugin
+  SessionRenegotiationPlugin
+  RobotPlugin
+  CompressionPlugin
+  FallbackScsvPlugin
+  OpenSslCcsInjectionPlugin
+
+
+
+ CHECKING HOST(S) AVAILABILITY
+ -----------------------------
+
+   165.22.213.245:443                       => 165.22.213.245 
+
+
+
+
+ SCAN RESULTS FOR 165.22.213.245:443 - 165.22.213.245
+ ----------------------------------------------------
+
+ * Downgrade Attacks:
+       TLS_FALLBACK_SCSV:                 OK - Supported
+
+ * SSLV2 Cipher Suites:
+      Server rejected all cipher suites.
+
+ * OpenSSL CCS Injection:
+                                          OK - Not vulnerable to OpenSSL CCS injection
+
+ * OpenSSL Heartbleed:
+                                          OK - Not vulnerable to Heartbleed
+
+ * TLSV1_3 Cipher Suites:
+      Server rejected all cipher suites.
+
+ * Session Renegotiation:
+       Client-initiated Renegotiation:    OK - Rejected
+       Secure Renegotiation:              OK - Supported
+
+ * TLS 1.2 Session Resumption Support:
+      With Session IDs:                  NOT SUPPORTED (0 successful, 5 failed, 0 errors, 5 total attempts).
+      With TLS Tickets:                  OK - Supported
+
+ * TLSV1_2 Cipher Suites:
+       Forward Secrecy                    OK - Supported
+       RC4                                OK - Not Supported
+
+     Preferred:
+        TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384                            256 bits      HTTP 200 OK                                                 
+     Accepted:
+        TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256                             256 bits      HTTP 200 OK                                                 
+        TLS_RSA_WITH_CAMELLIA_256_CBC_SHA                                256 bits      HTTP 200 OK                                                 
+        TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256                             128 bits      HTTP 200 OK                                                 
+        TLS_RSA_WITH_CAMELLIA_128_CBC_SHA                                128 bits      HTTP 200 OK                                                 
+        TLS_RSA_WITH_AES_256_GCM_SHA384                                  256 bits      HTTP 200 OK                                                 
+        TLS_RSA_WITH_AES_256_CBC_SHA256                                  256 bits      HTTP 200 OK                                                 
+        TLS_RSA_WITH_AES_256_CBC_SHA                                     256 bits      HTTP 200 OK                                                 
+        TLS_RSA_WITH_AES_128_GCM_SHA256                                  128 bits      HTTP 200 OK                                                 
+        TLS_RSA_WITH_AES_128_CBC_SHA256                                  128 bits      HTTP 200 OK                                                 
+        TLS_RSA_WITH_AES_128_CBC_SHA                                     128 bits      HTTP 200 OK                                                 
+        TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256                      256 bits      HTTP 200 OK                                                 
+        TLS_ECDHE_RSA_WITH_CAMELLIA_256_CBC_SHA384                       256 bits      HTTP 200 OK                                                 
+        TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256                       128 bits      HTTP 200 OK                                                 
+        TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384                            256 bits      HTTP 200 OK                                                 
+        TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384                            256 bits      HTTP 200 OK                                                 
+        TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA                               256 bits      HTTP 200 OK                                                 
+        TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256                            128 bits      HTTP 200 OK                                                 
+        TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256                            128 bits      HTTP 200 OK                                                 
+        TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA                               128 bits      HTTP 200 OK                                                 
+        RSA_WITH_AES_256_CCM_8                                           256 bits      HTTP 200 OK                                                 
+        RSA_WITH_AES_256_CCM                                             256 bits      HTTP 200 OK                                                 
+        RSA_WITH_AES_128_CCM_8                                           128 bits      HTTP 200 OK                                                 
+        RSA_WITH_AES_128_CCM                                             128 bits      HTTP 200 OK                                                 
+        ECDHE-ARIA256-GCM-SHA384                                         256 bits      HTTP 200 OK                                                 
+        ECDHE-ARIA128-GCM-SHA256                                         128 bits      HTTP 200 OK                                                 
+        ARIA256-GCM-SHA384                                               256 bits      HTTP 200 OK                                                 
+        ARIA128-GCM-SHA256                                               128 bits      HTTP 200 OK                                                 
+
+ * TLSV1_1 Cipher Suites:
+       Forward Secrecy                    OK - Supported
+       RC4                                OK - Not Supported
+
+     Preferred:
+        None - Server followed client cipher suite preference.                                                            
+     Accepted:
+        TLS_RSA_WITH_CAMELLIA_256_CBC_SHA                                256 bits      HTTP 200 OK                                                 
+        TLS_RSA_WITH_CAMELLIA_128_CBC_SHA                                128 bits      HTTP 200 OK                                                 
+        TLS_RSA_WITH_AES_256_CBC_SHA                                     256 bits      HTTP 200 OK                                                 
+        TLS_RSA_WITH_AES_128_CBC_SHA                                     128 bits      HTTP 200 OK                                                 
+        TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA                               256 bits      HTTP 200 OK                                                 
+        TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA                               128 bits      HTTP 200 OK                                                 
+
+ * Certificate Information:
+     Content
+       SHA1 Fingerprint:                  cb93dddee3b84bdcb8ebc3e69f7662683ad9c600
+       Common Name:                       countryName=AU, stateOrProvinceName=Some-State, organizationName=Internet Widgits Pty Ltd
+       Issuer:                            countryName=AU, stateOrProvinceName=Some-State, organizationName=Internet Widgits Pty Ltd
+       Serial Number:                     65611438487536483181298469349278940065229351752
+       Not Before:                        2020-05-26 03:35:18
+       Not After:                         2021-05-26 03:35:18
+       Signature Algorithm:               sha256
+       Public Key Algorithm:              RSA
+       Key Size:                          2048
+       Exponent:                          65537 (0x10001)
+       DNS Subject Alternative Names:     []
+
+     Trust
+       Hostname Validation:               FAILED - Certificate does NOT match 165.22.213.245
+       Android CA Store (9.0.0_r9):       FAILED - Certificate is NOT Trusted: self signed certificate
+       Apple CA Store (iOS 12, macOS 10.14, watchOS 5, and tvOS 12):FAILED - Certificate is NOT Trusted: self signed certificate
+       Java CA Store (jdk-12.0.1):        FAILED - Certificate is NOT Trusted: self signed certificate
+       Mozilla CA Store (2019-03-14):     FAILED - Certificate is NOT Trusted: self signed certificate
+       Windows CA Store (2019-05-27):     FAILED - Certificate is NOT Trusted: self signed certificate
+       Symantec 2018 Deprecation:         OK - Not a Symantec-issued certificate
+       Received Chain:                    countryName=AU, stateOrProvinceName=Some-State, organizationName=Internet Widgits Pty Ltd
+       Verified Chain:                    ERROR - Could not build verified chain (certificate untrusted?)
+       Received Chain Contains Anchor:    ERROR - Could not build verified chain (certificate untrusted?)
+       Received Chain Order:              OK - Order is valid
+       Verified Chain contains SHA1:      ERROR - Could not build verified chain (certificate untrusted?)
+
+     Extensions
+       OCSP Must-Staple:                  NOT SUPPORTED - Extension not found
+       Certificate Transparency:          NOT SUPPORTED - Extension not found
+
+     OCSP Stapling
+                                          NOT SUPPORTED - Server did not send back an OCSP response
+
+ * TLSV1 Cipher Suites:
+       Forward Secrecy                    OK - Supported
+       RC4                                OK - Not Supported
+
+     Preferred:
+        None - Server followed client cipher suite preference.                                                            
+     Accepted:
+        TLS_RSA_WITH_CAMELLIA_256_CBC_SHA                                256 bits      HTTP 200 OK                                                 
+        TLS_RSA_WITH_CAMELLIA_128_CBC_SHA                                128 bits      HTTP 200 OK                                                 
+        TLS_RSA_WITH_AES_256_CBC_SHA                                     256 bits      HTTP 200 OK                                                 
+        TLS_RSA_WITH_AES_128_CBC_SHA                                     128 bits      HTTP 200 OK                                                 
+        TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA                               256 bits      HTTP 200 OK                                                 
+        TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA                               128 bits      HTTP 200 OK                                                 
+
+ * Deflate Compression:
+                                          OK - Compression disabled
+
+ * SSLV3 Cipher Suites:
+      Server rejected all cipher suites.
+
+ * ROBOT Attack:
+                                          OK - Not vulnerable
+
+
+ SCAN COMPLETED IN 15.90 S
+ -------------------------
+
+We can check the scan output using the following command.
+
+cat sslyze-output.json
+
+In the next exercise, we will put sslyze into the CI/CD pipeline.
