@@ -1,0 +1,289 @@
+
+Learn how to use the Nikto tool to find security issues in an application
+
+In this scenario, you will learn how to install DAST tool and run DAST Scans on the Application
+
+You will need to install the DAST tool and then run the DAST scan on our Application.
+
+
+
+Install DAST Tool
+
+    Nikto is a web server assessment tool. It is designed to find various default and insecure files, configurations ,and programs on any type of web server.
+
+    Nikto is built on LibWhisker2 (by RFP) and can run on any platform which has a Perl environment. It supports SSL, proxies, host authentication, attack encoding and more
+
+Source Nikto-official-documents
+
+Let’s install the Nikto on the system to perform Dynamic analysis.
+
+apt-get update && apt-get install nikto -y
+
+Get:1 http://security.ubuntu.com/ubuntu bionic-security InRelease [88.7 kB]
+Get:2 http://archive.ubuntu.com/ubuntu bionic InRelease [242 kB]
+Get:3 http://archive.ubuntu.com/ubuntu bionic-updates InRelease [88.7 kB]
+Get:4 http://archive.ubuntu.com/ubuntu bionic-backports InRelease [74.6 kB]
+Get:5 http://security.ubuntu.com/ubuntu bionic-security/restricted amd64 Packages [59.3 kB]
+Get:6 http://security.ubuntu.com/ubuntu bionic-security/universe amd64 Packages [852 kB]
+Get:7 http://archive.ubuntu.com/ubuntu bionic/main amd64 Packages [1344 kB]       
+Get:8 http://security.ubuntu.com/ubuntu bionic-security/multiverse amd64 Packages [8815 B]   
+Get:9 http://security.ubuntu.com/ubuntu bionic-security/main amd64 Packages [930 kB]         
+Get:10 http://archive.ubuntu.com/ubuntu bionic/universe amd64 Packages [11.3 MB]                         
+Get:11 http://archive.ubuntu.com/ubuntu bionic/multiverse amd64 Packages [186 kB]                                  
+Get:12 http://archive.ubuntu.com/ubuntu bionic/restricted amd64 Packages [13.5 kB]
+Get:13 http://archive.ubuntu.com/ubuntu bionic-updates/universe amd64 Packages [1385 kB]
+Get:14 http://archive.ubuntu.com/ubuntu bionic-updates/multiverse amd64 Packages [20.1 kB]
+Get:15 http://archive.ubuntu.com/ubuntu bionic-updates/restricted amd64 Packages [73.6 kB]
+Get:16 http://archive.ubuntu.com/ubuntu bionic-updates/main amd64 Packages [1226 kB]
+Get:17 http://archive.ubuntu.com/ubuntu bionic-backports/main amd64 Packages [8286 B]
+Get:18 http://archive.ubuntu.com/ubuntu bionic-backports/universe amd64 Packages [8158 B]
+Fetched 17.9 MB in 6s (3050 kB/s)                
+Reading package lists... Done
+Reading package lists... Done
+Building dependency tree       
+Reading state information... Done
+The following additional packages will be installed:
+  libnet-ssleay-perl libwhisker2-perl perl-openssl-defaults
+Suggested packages:
+  nmap
+The following NEW packages will be installed:
+  libnet-ssleay-perl libwhisker2-perl nikto perl-openssl-defaults
+0 upgraded, 4 newly installed, 0 to remove and 4 not upgraded.
+Need to get 655 kB of archives.
+After this operation, 3526 kB of additional disk space will be used.
+Get:1 http://archive.ubuntu.com/ubuntu bionic/main amd64 perl-openssl-defaults amd64 3build1 [7012 B]
+Get:2 http://archive.ubuntu.com/ubuntu bionic-updates/main amd64 libnet-ssleay-perl amd64 1.84-1ubuntu0.2 [283 kB]
+Get:3 http://archive.ubuntu.com/ubuntu bionic/universe amd64 libwhisker2-perl all 2.5-1 [119 kB]
+Get:4 http://archive.ubuntu.com/ubuntu bionic/multiverse amd64 nikto all 1:2.1.5-2 [246 kB]
+Fetched 655 kB in 1s (571 kB/s)            
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package perl-openssl-defaults:amd64.
+(Reading database ... 9415 files and directories currently installed.)
+Preparing to unpack .../perl-openssl-defaults_3build1_amd64.deb ...
+Unpacking perl-openssl-defaults:amd64 (3build1) ...
+Selecting previously unselected package libnet-ssleay-perl.
+Preparing to unpack .../libnet-ssleay-perl_1.84-1ubuntu0.2_amd64.deb ...
+Unpacking libnet-ssleay-perl (1.84-1ubuntu0.2) ...
+Selecting previously unselected package libwhisker2-perl.
+Preparing to unpack .../libwhisker2-perl_2.5-1_all.deb ...
+Unpacking libwhisker2-perl (2.5-1) ...
+Selecting previously unselected package nikto.
+Preparing to unpack .../nikto_1%3a2.1.5-2_all.deb ...
+Unpacking nikto (1:2.1.5-2) ...
+
+Before going further into the Nikto we have to create the file nikto.dtd to store our output in the XML format
+
+touch /usr/share/doc/nikto/nikto.dtd
+
+We have successfully installed Nikto scanner, let’s explore the functionality it provides us.
+
+nikto -Help
+
+
+u Options:
+       -ask+               Whether to ask about submitting updates
+                               yes   Ask about each (default)
+                               no    Don't ask, don't send
+                               auto  Don't ask, just send
+       -Cgidirs+           Scan these CGI dirs: "none", "all", or values like "/cgi/ /cgi-a/"
+       -config+            Use this config file
+       -Display+           Turn on/off display outputs:
+                               1     Show redirects
+                               2     Show cookies received
+                               3     Show all 200/OK responses
+                               4     Show URLs which require authentication
+                               D     Debug output
+                               E     Display all HTTP errors
+                               P     Print progress to STDOUT
+                               S     Scrub output of IPs and hostnames
+                               V     Verbose output
+       -dbcheck           Check database and other key files for syntax errors
+       -evasion+          Encoding technique:
+                               1     Random URI encoding (non-UTF8)
+                               2     Directory self-reference (/./)
+                               3     Premature URL ending
+                               4     Prepend long random string
+                               5     Fake parameter
+                               6     TAB as request spacer
+                               7     Change the case of the URL
+                               8     Use Windows directory separator (\)
+                               A     Use a carriage return (0x0d) as a request spacer
+                               B     Use binary value 0x0b as a request spacer
+        -Format+           Save file (-o) format:
+                               csv   Comma-separated-value
+                               htm   HTML Format
+                               msf+  Log to Metasploit
+                               nbe   Nessus NBE format
+                               txt   Plain text
+                               xml   XML Format
+                               (if not specified the format will be taken from the file extension passed to -output)
+       -Help              Extended help information
+       -host+             Target host
+       -IgnoreCode        Ignore Codes--treat as negative responses
+       -id+               Host authentication to use, format is id:pass or id:pass:realm
+       -key+              Client certificate key file
+       -list-plugins      List all available plugins, perform no testing
+       -maxtime+          Maximum testing time per host
+       -mutate+           Guess additional file names:
+                               1     Test all files with all root directories
+                               2     Guess for password file names
+                               3     Enumerate user names via Apache (/~user type requests)
+                               4     Enumerate user names via cgiwrap (/cgi-bin/cgiwrap/~user type requests)
+                               5     Attempt to brute force sub-domain names, assume that the host name is the parent domain
+                               6     Attempt to guess directory names from the supplied dictionary file
+       -mutate-options    Provide information for mutates
+       -nointeractive     Disables interactive features
+       -nolookup          Disables DNS lookups
+       -nossl             Disables the use of SSL
+       -no404             Disables nikto attempting to guess a 404 page
+       -output+           Write output to this file ('.' for auto-name)
+       -Pause+            Pause between tests (seconds, integer or float)
+       -Plugins+          List of plugins to run (default: ALL)
+       -port+             Port to use (default 80)
+       -RSAcert+          Client certificate file
+       -root+             Prepend root value to all requests, format is /directory
+       -Save              Save positive responses to this directory ('.' for auto-name)
+       -ssl               Force ssl mode on port
+       -Tuning+           Scan tuning:
+                               1     Interesting File / Seen in logs
+                               2     Misconfiguration / Default File
+                               3     Information Disclosure
+                               4     Injection (XSS/Script/HTML)
+                               5     Remote File Retrieval - Inside Web Root
+                               6     Denial of Service
+                               7     Remote File Retrieval - Server Wide
+                               8     Command Execution / Remote Shell
+                               9     SQL Injection
+                               0     File Upload
+                               a     Authentication Bypass
+                               b     Software Identification
+                               c     Remote Source Inclusion
+                               x     Reverse Tuning Options (i.e., include all except specified)
+       -timeout+          Timeout for requests (default 10 seconds)
+       -Userdbs           Load only user databases, not the standard databases
+                               all   Disable standard dbs and load only user dbs
+                               tests Disable only db_tests and load udb_tests
+       -until             Run until the specified time or duration
+       -update            Update databases and plugins from CIRT.net
+       -useproxy          Use the proxy defined in nikto.conf
+       -Version           Print plugin and database versions
+       -vhost+            Virtual host (for Host header)
+        + requires a value
+
+Let’s move to the next step.
+
+
+
+Run the Scanner
+
+As we have learned in the DevSecOps Gospel, we should save the output in the machine-readable format (CSV, JSON, XML) so it can be parsed by the machines easily.
+
+Let’s run nikto with the following options.
+
+nikto -output nikto_output.xml -h https://prod-ygvmkydo.lab.practical-devsecops.training
+
+    -h flag used to set the target application which we want to scan
+    -output flag used to set the output file in which we want to store the result
+
+- Nikto v2.1.5
+---------------------------------------------------------------------------
++ Target IP:          134.209.130.45
++ Target Hostname:    prod-ygvmkydo.lab.practical-devsecops.training
++ Target Port:        443
+---------------------------------------------------------------------------
++ SSL Info:        Subject: /CN=*.lab.practical-devsecops.training
+                   Ciphers: TLS_AES_256_GCM_SHA384
+                   Issuer:  /C=US/O=Let's Encrypt/CN=Let's Encrypt Authority X3
++ Start Time:         2020-11-04 09:45:30 (GMT0)
+---------------------------------------------------------------------------
++ Server: nginx/1.14.0 (Ubuntu)
++ Uncommon header 'x-frame-options' found, with contents: SAMEORIGIN
++ No CGI Directories found (use '-C all' to force check all possible dirs)
++ Server is using a wildcard certificate: '*.lab.practical-devsecops.training'
++ OSVDB-17113: /SilverStream: SilverStream allows directory listing
++ OSVDB-27071: /phpimageview.php?pic=javascript:alert(8754): PHP Image View 1.0 is vulnerable to Cross Site Scripting (XSS).  http://www.cert.org/advisories/CA-2000-02.html.
++ OSVDB-3931: /myphpnuke/links.php?op=MostPopular&ratenum=[script]alert(document.cookie);[/script]&ratetype=percent: myphpnuke is vulnerable to Cross Site Scripting (XSS). http://www.cert.org/advisories/CA-2000-02.html.
++ /modules.php?op=modload&name=FAQ&file=index&myfaq=yes&id_cat=1&categories=%3Cimg%20src=javascript:alert(9456);%3E&parent_id=0: Post Nuke 0.7.2.3-Phoenix is vulnerable to Cross Site Scripting (XSS). http://www.cert.org/advisories/CA-2000-02.html.
++ /modules.php?letter=%22%3E%3Cimg%20src=javascript:alert(document.cookie);%3E&op=modload&name=Members_List&file=index: Post Nuke 0.7.2.3-Phoenix is vulnerable to Cross Site Scripting (XSS). http://www.cert.org/advisories/CA-2000-02.html.
++ OSVDB-4598: /members.asp?SF=%22;}alert(223344);function%20x(){v%20=%22: Web Wiz Forums ver. 7.01 and below is vulnerable to Cross Site Scripting (XSS). http://www.cert.org/advisories/CA-2000-02.html.
++ OSVDB-2946: /forum_members.asp?find=%22;}alert(9823);function%20x(){v%20=%22: Web Wiz Forums ver. 7.01 and below is vulnerable to Cross Site Scripting (XSS). http://www.cert.org/advisories/CA-2000-02.html.
++ 6544 items checked: 0 error(s) and 9 item(s) reported on remote host
++ End Time:           2020-11-04 09:47:09 (GMT0) (99 seconds)
+---------------------------------------------------------------------------
++ 1 host(s) tested```
+
+Now running __cat__ command on the output file will show the __nikto__ result in the __XML__ format
+
+`cat nikto_output.xml`
+
+```bash
+<?xml version="1.0" ?>
+<!DOCTYPE niktoscan SYSTEM "/usr/share/doc/nikto/nikto.dtd">
+<niktoscan hoststest="0" options="-h 165.22.213.245:8000 -output nikto_output.xml" version="2.1.5" scanstart="Mon May 25 05:52:24 2020" scanend="Thu Jan  1 00:00:00 1970" scanelapsed=" seconds" nxmlversion="1.2">
+
+<scandetails targetip="165.22.213.245" targethostname="165.22.213.245" targetport="8000" targetbanner="WSGIServer/0.1 Python/2.7.18" starttime="2020-05-25 05:52:25" sitename="http://165.22.213.245:8000" siteip="http://165.22.213.245:8000" hostheader="165.22.213.245" errors="0" checks="6544">
+
+
+<item id="999100" osvdbid="0" osvdblink="http://osvdb.org/0" method="GET">
+<description><![CDATA[Uncommon header 'x-frame-options' found, with contents: SAMEORIGIN]]></description>
+<uri><![CDATA[/]]></uri>
+<namelink><![CDATA[http://165.22.213.245:8000/]]></namelink>
+<iplink><![CDATA[http://165.22.213.245:8000/]]></iplink>
+</item>
+
+<item id="000398" osvdbid="17113" osvdblink="http://osvdb.org/17113" method="GET">
+<description><![CDATA[/SilverStream: SilverStream allows directory listing]]></description>
+<uri><![CDATA[/SilverStream]]></uri>
+<namelink><![CDATA[http://165.22.213.245:8000/SilverStream]]></namelink>
+<iplink><![CDATA[http://165.22.213.245:8000/SilverStream]]></iplink>
+</item>
+
+<item id="000818" osvdbid="27071" osvdblink="http://osvdb.org/27071" method="GET">
+<description><![CDATA[/phpimageview.php?pic=javascript:alert(8754): PHP Image View 1.0 is vulnerable to Cross Site Scripting (XSS).  CA-2000-02.]]></description>
+<uri><![CDATA[/phpimageview.php?pic=javascript:alert(8754)]]></uri>
+<namelink><![CDATA[http://165.22.213.245:8000/phpimageview.php?pic=javascript:alert(8754)]]></namelink>
+<iplink><![CDATA[http://165.22.213.245:8000/phpimageview.php?pic=javascript:alert(8754)]]></iplink>
+</item>
+
+<item id="000834" osvdbid="3931" osvdblink="http://osvdb.org/3931" method="GET">
+<description><![CDATA[/myphpnuke/links.php?op=MostPopular&ratenum=[script]alert(document.cookie);[/script]&ratetype=percent: myphpnuke is vulnerable to Cross Site Scripting (XSS). CA-2000-02.]]></description>
+<uri><![CDATA[/myphpnuke/links.php?op=MostPopular&ratenum=[script]alert(document.cookie);[/script]&ratetype=percent]]></uri>
+<namelink><![CDATA[http://165.22.213.245:8000/myphpnuke/links.php?op=MostPopular&ratenum=[script]alert(document.cookie);[/script]&ratetype=percent]]></namelink>
+<iplink><![CDATA[http://165.22.213.245:8000/myphpnuke/links.php?op=MostPopular&ratenum=[script]alert(document.cookie);[/script]&ratetype=percent]]></iplink>
+</item>
+
+<item id="000852" osvdbid="0" osvdblink="http://osvdb.org/0" method="GET">
+<description><![CDATA[/modules.php?op=modload&name=FAQ&file=index&myfaq=yes&id_cat=1&categories=%3Cimg%20src=javascript:alert(9456);%3E&parent_id=0: Post Nuke 0.7.2.3-Phoenix is vulnerable to Cross Site Scripting (XSS). CA-2000-02.]]></description>
+<uri><![CDATA[/modules.php?op=modload&name=FAQ&file=index&myfaq=yes&id_cat=1&categories=%3Cimg%20src=javascript:alert(9456);%3E&parent_id=0]]></uri>
+<namelink><![CDATA[http://165.22.213.245:8000/modules.php?op=modload&name=FAQ&file=index&myfaq=yes&id_cat=1&categories=%3Cimg%20src=javascript:alert(9456);%3E&parent_id=0]]></namelink>
+<iplink><![CDATA[http://165.22.213.245:8000/modules.php?op=modload&name=FAQ&file=index&myfaq=yes&id_cat=1&categories=%3Cimg%20src=javascript:alert(9456);%3E&parent_id=0]]></iplink>
+</item>
+
+<item id="000862" osvdbid="0" osvdblink="http://osvdb.org/0" method="GET">
+<description><![CDATA[/modules.php?letter=%22%3E%3Cimg%20src=javascript:alert(document.cookie);%3E&op=modload&name=Members_List&file=index: Post Nuke 0.7.2.3-Phoenix is vulnerable to Cross Site Scripting (XSS). CA-2000-02.]]></description>
+<uri><![CDATA[/modules.php?letter=%22%3E%3Cimg%20src=javascript:alert(document.cookie);%3E&op=modload&name=Members_List&file=index]]></uri>
+<namelink><![CDATA[http://165.22.213.245:8000/modules.php?letter=%22%3E%3Cimg%20src=javascript:alert(document.cookie);%3E&op=modload&name=Members_List&file=index]]></namelink>
+<iplink><![CDATA[http://165.22.213.245:8000/modules.php?letter=%22%3E%3Cimg%20src=javascript:alert(document.cookie);%3E&op=modload&name=Members_List&file=index]]></iplink>
+</item>
+
+<item id="000863" osvdbid="4598" osvdblink="http://osvdb.org/4598" method="GET">
+<description><![CDATA[/members.asp?SF=%22;}alert(223344);function%20x(){v%20=%22: Web Wiz Forums ver. 7.01 and below is vulnerable to Cross Site Scripting (XSS). CA-2000-02.]]></description>
+<uri><![CDATA[/members.asp?SF=%22;}alert(223344);function%20x(){v%20=%22]]></uri>
+<namelink><![CDATA[http://165.22.213.245:8000/members.asp?SF=%22;}alert(223344);function%20x(){v%20=%22]]></namelink>
+<iplink><![CDATA[http://165.22.213.245:8000/members.asp?SF=%22;}alert(223344);function%20x(){v%20=%22]]></iplink>
+</item>
+
+<item id="000888" osvdbid="2946" osvdblink="http://osvdb.org/2946" method="GET">
+<description><![CDATA[/forum_members.asp?find=%22;}alert(9823);function%20x(){v%20=%22: Web Wiz Forums ver. 7.01 and below is vulnerable to Cross Site Scripting (XSS). CA-2000-02.]]></description>
+<uri><![CDATA[/forum_members.asp?find=%22;}alert(9823);function%20x(){v%20=%22]]></uri>
+<namelink><![CDATA[http://165.22.213.245:8000/forum_members.asp?find=%22;}alert(9823);function%20x(){v%20=%22]]></namelink>
+<iplink><![CDATA[http://165.22.213.245:8000/forum_members.asp?find=%22;}alert(9823);function%20x(){v%20=%22]]></iplink>
+</item>
+
+<statistics elapsed="51" itemsfound="8" itemstested="6544" endtime="2020-05-25 05:53:16" />
+</scandetails>
+</niktoscan>
+
+In the next exercise, we will put nikto into the CI/CD pipeline.
+
+
