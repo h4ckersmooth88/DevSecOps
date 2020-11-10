@@ -1,0 +1,176 @@
+
+Learn how to run static analysis scans on Java code using FindSecBugs
+
+In this scenario, you will learn how to run FindSecBugs scan on Java code.
+
+You will need to download the code, install the SAST tool called FindSecBugs and then finally run the SAST scan on the code.
+
+
+
+Download the source code
+
+We will do all the exercises locally first in DevSecOps-Box, so let’s start the exercise.
+
+First, we need to download the source code of the project from the git repository.
+
+wget https://github.com/WebGoat/WebGoat/releases/download/v8.1.0/webgoat-server-8.1.0.jar
+
+In the next step, we will install the OWASP Find Sec Bugs tool.
+
+
+
+Install OWASP FindSecBugs
+
+    The SpotBugs plugin for security audits of Java web applications and Android applications.
+
+    You can find more details about the project at https://github.com/find-sec-bugs/find-sec-bugs
+
+Before installing FindSecBugs, we need to ensure java is installed in our system.
+
+java -h
+
+bash: java: command not found
+
+It seems Java is not installed, so we need to install Java with the following command.
+
+apt install openjdk-8-jre -y
+
+Next, we need to download find-sec-bugs source code.
+
+wget https://github.com/find-sec-bugs/find-sec-bugs/releases/download/version-1.9.0/findsecbugs-cli-1.9.0-fix2.zip && unzip findsecbugs-cli-1.9.0-fix2.zip -d /opt/
+
+Fix the line ending in the shell script.
+
+sed -i -e 's/\r$//' /opt/findsecbugs.sh
+
+chmod +x /opt/findsecbugs.sh
+
+We will add the tool to the PATH, so we can refer it on the command line.
+
+export PATH=/opt/:$PATH
+
+Let’s move to the next step.
+
+
+
+Run the SAST Scan
+
+Let’s explore what options this tool provides us.
+
+findsecbugs.sh -h
+
+SLF4J: No SLF4J providers were found.
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See http://www.slf4j.org/codes.html#noProviders for further details.
+Usage: findbugs [general options] -textui [command line options...] [jar/zip/class files, directories...]
+General options:
+  -jvmArgs args    Pass args to JVM
+  -maxHeap size    Maximum Java heap size in megabytes (default=768)
+  -javahome <dir>  Specify location of JRE
+  General FindBugs options:
+    -project <project>                       analyze given project
+    -home <home directory>                   specify SpotBugs home directory
+    -pluginList <jar1[:jar2...]>             specify list of plugin Jar files to load
+    -effort[:min|less|default|more|max]      set analysis effort level
+    -adjustExperimental                      lower priority of experimental Bug Patterns
+    -workHard                                ensure analysis effort is at least 'default'
+    -conserveSpace                           same as -effort:min (for backward compatibility)
+    -showPlugins                             show list of available detector plugins
+    -userPrefs <filename>                    user preferences file, e.g /path/to/project/.settings/edu.umd.cs.findbugs.core.prefs for Eclipse projects
+  Output options:
+    -timestampNow                            set timestamp of results to be current time
+    -quiet                                   suppress error messages
+    -longBugCodes                            report long bug codes
+    -progress                                display progress in terminal window
+    -release <release name>                  set the release name of the analyzed application
+    -experimental                            report of any confidence level including experimental bug patterns
+    -low                                     report warnings of any confidence level
+    -medium                                  report only medium and high confidence warnings [default]
+    -high                                    report only high confidence warnings
+    -maxRank <rank>                          only report issues with a bug rank at least as scary as that provided
+    -dontCombineWarnings                     Don't combine warnings that differ only in line number
+    -sortByClass                             sort warnings by class
+    -xml[:withMessages]                      XML output (optionally with messages)
+    -xdocs                                   xdoc XML output to use with Apache Maven
+    -html[:stylesheet]                       Generate HTML output (default stylesheet is default.xsl)
+    -emacs                                   Use emacs reporting format
+    -relaxed                                 Relaxed reporting mode (more false positives!)
+    -train[:outputDir]                       Save training data (experimental); output dir defaults to '.'
+    -useTraining[:inputDir]                  Use training data (experimental); input dir defaults to '.'
+    -redoAnalysis <filename>                 Redo analysis using configureation from previous analysis
+    -sourceInfo <filename>                   Specify source info file (line numbers for fields/classes)
+    -projectName <project name>              Descriptive name of project
+    -reanalyze <filename>                    redo analysis in provided file
+    -output <filename>                       Save output in named file
+    -nested[:true|false]                     analyze nested jar/zip archives (default=true)
+  Output filtering options:
+    -bugCategories <cat1[,cat2...]>          only report bugs in given categories
+    -onlyAnalyze <classes/packages>          only analyze given classes and packages; end with .* to indicate classes in a package, .- to indicate a package prefix
+    -excludeBugs <baseline bugs>             exclude bugs that are also reported in the baseline xml output
+    -exclude <filter file>                   exclude bugs matching given filter
+    -include <filter file>                   include only bugs matching given filter
+    -applySuppression                        Exclude any bugs that match suppression filter loaded from fbp file
+  Detector (visitor) configuration options:
+    -visitors <v1[,v2...]>                   run only named visitors
+    -omitVisitors <v1[,v2...]>               omit named visitors
+    -chooseVisitors <+v1,-v2,...>            selectively enable/disable detectors
+    -choosePlugins <+p1,-p2,...>             selectively enable/disable plugins
+    -adjustPriority <v1=(raise|lower)[,...]> raise/lower priority of warnings for given visitor(s)
+  Project configuration options:
+    -auxclasspath <classpath>                set aux classpath for analysis
+    -auxclasspathFromInput                   read aux classpath from standard input
+    -auxclasspathFromFile <filepath>         read aux classpaths from a designated file
+    -sourcepath <source path>                set source path for analyzed classes
+    -exitcode                                set exit code of process
+    -noClassOk                               output empty warning file if no classes are specified
+    -xargs                                   get list of classfiles/jarfiles from standard input rather than command line
+    -analyzeFromFile <filepath>              get the list of class/jar files from a designated file
+    -bugReporters <name,name2,-name3>        bug reporter decorators to explicitly enable/disable
+    -printConfiguration                      print configuration and exit, without running analysis
+    -version                                 print version, check for updates and exit, without running analysis
+
+Perform the scan using the following command.
+
+findsecbugs.sh -progress -html -output findsecbugs-report.html webgoat-server-8.1.0.jar
+
+    Note: This will take several minutes to complete.
+
+SLF4J: No SLF4J providers were found.
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See http://www.slf4j.org/codes.html#noProviders for further details.
+Scanning archives (1 / 1)
+2 analysis passes to perform
+Pass 1: Analyzing classes (46404 / 46404) - 100% complete
+Pass 2: Analyzing classes (20863 / 44219) - 47% complete
+                           ...SNIP...
+ [-1]==> +============================
+| /!\ Warning : The taint debugging is not fully activated.
+| [[ Stack ]]
+Oups Accessing TOP or BOTTOM frame! @ 643 
+
+Dataflow (block 1): start fact is +============================
+| /!\ Warning : The taint debugging is not fully activated.
+| [[ Stack ]]
+Oups Accessing TOP or BOTTOM frame!
+Dataflow (block 1): orig result is +============================
+| /!\ Warning : The taint debugging is not fully activated.
+| [[ Stack ]]
+Oups Accessing TOP or BOTTOM frame!
+Dataflow (block 1): result is +============================
+| /!\ Warning : The taint debugging is not fully activated.
+| [[ Stack ]]
+Oups Accessing TOP or BOTTOM frame! @ timestamp 19
+----------------------------------------------------------------------
+com.h3xstream.findsecbugs.taintanalysis.TaintDataflow iteration: 106, timestamp: 643
+org.aspectj.weaver.AjcMemberMaker.interConstructor(Lorg/aspectj/weaver/ResolvedType;Lorg/aspectj/weaver/ResolvedMember;Lorg/aspectj/weaver/UnresolvedType;)Lorg/aspectj/weaver/ResolvedMember;
+----------------------------------------------------------------------
+Pass 2: Analyzing classes (23841 / 44219) - 53% complete
+Pass 2: Analyzing classes (27720 / 44219) - 62% complete
+Pass 2: Analyzing classes (27722 / 44219) - 62% complete
+Pass 2: Analyzing classes (38412 / 44219) - 86% complete
+
+As we have learned in the DevSecOps Gospel, we should save the output in a machine-readable format so the output can be parsed by the machines.
+
+Do you think the above command is following the DevSecOps best practices? What can we do to improve it further?
+
+
