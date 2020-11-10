@@ -1,0 +1,63 @@
+image: docker:latest
+
+services:
+  - docker:dind
+
+stages:
+  - build
+  - test
+  - release
+  - dast
+
+build:
+  stage: build
+  image: python:3.6
+  before_script:
+   - pip3 install --upgrade virtualenv
+  script:
+   - virtualenv env
+   - source env/bin/activate
+   - pip install -r requirements.txt
+   - python manage.py check
+
+test:
+  stage: test
+  image: python:3.6
+  before_script:
+   - pip3 install --upgrade virtualenv
+  script:
+   - virtualenv env
+   - source env/bin/activate
+   - pip install -r requirements.txt
+   - python manage.py test taskManager
+
+nikto:
+  stage: dast
+  script:
+    - docker pull alpine/nikto 
+    - docker run --rm -v $(pwd):/tmp alpine/nikto -h https://prod-zanurars.lab.practical-devsecops.training -o /tmp/nikto.json
+  artifacts:
+    paths: [nikto.json]
+    when: always
+  allow_failure: true 
+
+
+nmap:
+  stage: dast
+  script:
+    - docker pull uzyexe/nmap 
+    - docker run --rm -v $(pwd):/tmp uzyexe/nmap https://prod-zanurars.lab.practical-devsecops.training -oX nmap_out.xml
+  artifacts:
+    paths: [nmap.json]
+    when: always
+  allow_failure: true 
+
+sslyze:
+  stage: dast
+  script:
+    - docker pull andreburgaud/sslyze 
+    - docker run -it --rm andreburgaud/sslyze --regular --json_out sslyze-output.json https://prod-zanurars.lab.practical-devsecops.training:443
+  artifacts:
+    paths: [nmap.json]
+    when: always
+  allow_failure: true 
