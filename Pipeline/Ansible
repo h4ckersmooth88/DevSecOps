@@ -34,3 +34,4 @@ inspec:
     - dpkg -i inspec_4.18.114-1_amd64.deb
   script:
     - inspec exec https://github.com/dev-sec/linux-baseline -t ssh://root@"$DEPLOYMENT_SERVER" -i ~/.ssh/id_rsa --chef-license accept
+  allow_failure: true 
