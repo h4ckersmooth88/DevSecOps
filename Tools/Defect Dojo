@@ -1,0 +1,3 @@
+docker run --user $(id -u):$(id -g) -w /zap -v $(pwd):/zap/wrk:rw --rm owasp/zap2docker-stable zap-baseline.py -t https://prod-wgnpyvvt.lab.practical-devsecops.training -x zap-output.xml
+
+python upload-results.py --host dojo-sovxcbyj.lab.practical-devsecops.training --api_key $API_KEY --engagement_id 1 --result_file zap-output.xml --username root --scanner "ZAP Scan"
