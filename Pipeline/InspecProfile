@@ -1,0 +1,174 @@
+
+Install Inspec Tool
+
+    Chef InSpec is an open-source framework for testing and auditing your applications and infrastructure. Chef InSpec works by comparing the actual state of your system with the desired state that you express in easy-to-read and easy-to-write Chef InSpec code. Chef InSpec detects violations and displays findings in the form of a report, but puts you in control of remediation.
+
+Source Inspec official website
+
+Let’s install the Inspec on the system to perform Compliance as code .
+
+Download the Inspec debian package from the inpsec website
+
+wget https://packages.chef.io/files/stable/inspec/4.18.114/ubuntu/16.04/inspec_4.18.114-1_amd64.deb
+
+Install the downloaded package
+
+dpkg -i inspec_4.18.114-1_amd64.deb
+
+Selecting previously unselected package inspec.
+(Reading database ... 11606 files and directories currently installed.)
+Preparing to unpack inspec_4.18.114-1_amd64.deb ...
+You're about to install InSpec!
+Unpacking inspec (4.18.114-1) ...
+Setting up inspec (4.18.114-1) ...
+Thank you for installing InSpec!
+
+We have successfully installed Inspec tool, let’s explore the functionality it provides us.
+
+inspec --help
+
+
+Commands:
+  inspec archive PATH                # archive a profile to tar.gz (default) or zip
+  inspec artifact SUBCOMMAND         # Manage Chef InSpec Artifacts
+  inspec check PATH                  # verify all tests at the specified PATH
+  inspec compliance SUBCOMMAND       # Chef Compliance commands
+  inspec detect                      # detect the target OS
+  inspec env                         # Output shell-appropriate completion configuration
+  inspec exec LOCATIONS              # Run all test files at the specified LOCATIONS. Loads the given profile(s) and fetches their dependen...
+  inspec habitat SUBCOMMAND          # Manage Habitat with Chef InSpec
+  inspec help [COMMAND]              # Describe available commands or one specific command
+  inspec init SUBCOMMAND             # Generate InSpec code
+  inspec json PATH                   # read all tests in PATH and generate a JSON summary
+  inspec nothing                     # does nothing
+  inspec plugin SUBCOMMAND           # Manage Chef InSpec and Train plugins
+  inspec shell                       # open an interactive debugging shell
+  inspec supermarket SUBCOMMAND ...  # Supermarket commands
+  inspec vendor PATH                 # Download all dependencies and generate a lockfile in a `vendor` directory
+  inspec version                     # prints the version of this tool
+
+Options:
+  l, [--log-level=LOG_LEVEL]                         # Set the log level: info (default), debug, warn, error
+      [--log-location=LOG_LOCATION]                  # Location to send diagnostic log messages to. (default: $stdout or Inspec::Log.error)
+      [--diagnose], [--no-diagnose]                  # Show diagnostics (versions, configurations)
+      [--color], [--no-color]                        # Use colors in output.
+      [--interactive], [--no-interactive]            # Allow or disable user interaction
+      [--disable-core-plugins]                       # Disable loading all plugins that are shipped in the lib/plugins directory of InSpec. Useful in development.
+      [--disable-user-plugins]                       # Disable loading all plugins that the user installed.
+      [--enable-telemetry], [--no-enable-telemetry]  # Allow or disable telemetry
+      [--chef-license=CHEF_LICENSE]                  # Accept the license for this product and any contained products: accept, accept-no-persist, accept-silent
+
+
+
+Let’s move to the next step.
+
+
+
+Create the custom profile
+
+Create a new folder and cd into that folder
+
+mkdir inspec-profile && cd inspec-profile
+
+Create the Ubuntu profile
+
+inspec init profile ubuntu --chef-license accept
+
+Run the following command to append the inspec task to the file at ubuntu/controls/example.rb. If you wish, you can edit the file using nano or any text editor.
+
+cat >> ubuntu/controls/example.rb <<EOL
+describe file('/etc/shadow') do
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'root' }
+  end
+EOL
+
+This code basically checks whether shadow file is owned by root or not
+
+To know more about Inspec, please visit the official website at Inspec-tutorial
+
+Lets validate the profile to make sure there are no syntax errors.
+
+inspec check ubuntu
+
+Location :   ubuntu
+Profile :    ubuntu
+Controls :   3
+Timestamp :  2020-05-25T22:53:52+00:00
+Valid :      true
+
+No errors or warnings
+
+Now run the profile on the local-machine before executing on the server
+
+inspec exec ubuntu
+
+
+Profile: InSpec Profile (ubuntu)
+Version: 0.1.0
+Target:  local://
+
+  ✔  tmp-1.0: Create /tmp directory
+     ✔  File /tmp is expected to be directory
+
+  File /tmp
+     ✔  is expected to be directory
+  File /etc/shadow
+     ✔  is expected to exist
+     ✔  is expected to be file
+     ✔  is expected to be owned by "root"
+
+Profile Summary: 1 successful control, 0 control failures, 0 controls skipped
+Test Summary: 5 successful, 0 failures, 0 skipped
+
+Let’s move to the next step.
+
+
+
+Run the Inspec tool to test for compliance against a server
+
+Let’s try to run the custom profile created by us against the server
+
+Before executing the profile we need to execute the below command
+
+echo "StrictHostKeyChecking no" >> ~/.ssh/config
+
+This commands prevent the ssh agent from prompting YES or NO question
+
+Let’s run inspec with the following options.
+
+inspec exec ubuntu -t ssh://root@prod-loyfanot -i ~/.ssh/id_rsa --chef-license accept
+
+The flags/options used in the above commands are
+- -t tells the target machine to run the profile against.
+- -i provides the path where the remote machine’s ssh key is stored.
+- --chef-license accept ensures that we are accepting license agreement there by preventing the inspec from prompting YES or NO question.
+
+Profile: InSpec Profile (ubuntu)
+Version: 0.1.0
+Target:  ssh://root@server:22
+
+  ✔  tmp-1.0: Create /tmp directory
+     ✔  File /tmp is expected to be directory
+
+  File /tmp
+     ✔  is expected to be directory
+  File /etc/shadow
+     ✔  is expected to exist
+     ✔  is expected to be file
+     ✔  is expected to be owned by "root"
+
+Profile Summary: 1 successful control, 0 control failures, 0 controls skipped
+Test Summary: 5 successful, 0 failures, 0 skipped
+
+You can see, we have about 1 successful control check and 0 control failures.
+Exercise 8.3 Create an InSpec profile for pci/dss
+
+This exercise is to create custom profiles to learn how to edit and create new roles for your organization’s policy.
+
+    Use Inspec’s init command to create a new profile
+    Edit newly created skeleton to add new functionality like checking for the content of a file on a remote machine.
+    Run the tests locally before setting it up in the CI pipeline.
+    Commit it to the project’s repository using either the Gitlab UI or Git commands.
+
