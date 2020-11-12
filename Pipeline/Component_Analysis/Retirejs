@@ -38,10 +38,10 @@ oast-frontend:
   image: node:alpine3.10
   script:
     - npm install
-    - npm install -g retire # Install retirejs npm package.
-    - retire --outputformat json --outputpath retirejs-report.json --severity high --exitwith 0
+    - npm install -g retire
+    - retire --outputformat json --outputpath retirejs-report.json --severity high --exitwith 1
   artifacts:
     paths: [retirejs-report.json]
-    when: always # What is this for?
+    when: always
     expire_in: one week
 
