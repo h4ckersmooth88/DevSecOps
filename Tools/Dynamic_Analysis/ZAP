@@ -1,0 +1,189 @@
+
+Learn how to run ZAP to find security issues
+
+In this scenario, you will learn how to use ZAP to scan a website for security issues.
+
+
+
+OWASP Zed Attack Proxy tool
+
+    ZAP is an open-source web application security scanner to perform security testing (Dynamic Testing) on web applications. OWASP ZAP is the flagship OWASP project used extensively by penetration testers. ZAP can also run in a daemon mode for hands off scans for CI/CD pipeline. ZAP provides extensive API(SDK) and a REST API to help users create custom scripts.
+
+Source OWASP ZAP
+
+In this exercise, we will use ZAP Baseline Scan to find security issues passively.
+
+Let’s start the Docker service.
+
+service docker start
+
+* Starting Docker: docker                                               [ OK ]
+
+Then, we need to pull ZAP’s stable Docker.
+
+docker pull owasp/zap2docker-stable
+
+Let’s see the usage of ZAP Docker for Baseline Scan.
+
+docker run --rm owasp/zap2docker-stable zap-baseline.py --help
+
+Usage: zap-baseline.py -t <target> [options]
+     -t target         target URL including the protocol, e.g. https://www.example.com
+ Options:
+     -h                print this help message
+     -c config_file    config file to use to INFO, IGNORE or FAIL warnings
+     -u config_url     URL of config file to use to INFO, IGNORE or FAIL warnings
+     -g gen_file       generate default config file (all rules set to WARN)
+     -m mins           the number of minutes to spider for (default 1)
+     -r report_html    file to write the full ZAP HTML report
+     -w report_md      file to write the full ZAP Wiki (Markdown) report
+     -x report_xml     file to write the full ZAP XML report
+     -J report_json    file to write the full ZAP JSON document
+     -a                include the alpha passive scan rules as well
+     -d                show debug messages
+     -P                specify listen port
+     -D                delay in seconds to wait for passive scanning 
+     -i                default rules not in the config file to INFO
+     -I                do not return failure on warning
+     -j                use the Ajax spider in addition to the traditional one
+     -l level          minimum level to show: PASS, IGNORE, INFO, WARN or FAIL, use with -s to hide example URLs
+     -n context_file   context file which will be loaded prior to spidering the target
+     -p progress_file  progress file which specifies issues that are being addressed
+     -s                short output format - dont show PASSes or example URLs
+     -T                max time in minutes to wait for ZAP to start and the passive scan to run
+     -z zap_options    ZAP command line options e.g. -z "-config aaa=bbb -config ccc=ddd"
+     --hook            path to python file that define your custom hooks
+
+ For more details see https://github.com/zaproxy/zaproxy/wiki/ZAP-Baseline-Scan
+
+Let’s move to the next step.
+
+
+
+Run the Scanner
+
+As we have learned in the DevSecOps Gospel, we should save the output in the machine-readable format like JSON, CSV or XML.
+
+Let’s run zap-baseline.py with basic options.
+
+docker run --rm owasp/zap2docker-stable zap-baseline.py -t https://prod-lbufptgd.lab.practical-devsecops.training
+
+2020-10-15 04:36:31,802 Params: ['zap-x.sh', '-daemon', '-port', '39093', '-host', '0.0.0.0', '-config', 'api.disablekey=true', '-config', 'api.addrs.addr.name=.*', '-config', 'api.addrs.addr.regex=true', '-config', 'spider.maxDuration=1', '-addonupdate', '-addoninstall', 'pscanrulesBeta']
+_XSERVTransmkdir: ERROR: euid != 0,directory /tmp/.X11-unix will not be created.
+Oct 15, 2020 4:37:02 AM java.util.prefs.FileSystemPreferences$1 run
+INFO: Created user preferences directory.
+Total of 52 URLs
+PASS: Content-Type Header Missing [10019]
+PASS: X-Frame-Options Header Scanner [10020]
+PASS: Information Disclosure - Debug Error Messages [10023]
+PASS: Information Disclosure - Sensitive Information in URL [10024]
+PASS: Information Disclosure - Sensitive Information in HTTP Referrer Header [10025]
+PASS: HTTP Parameter Override [10026]
+PASS: Information Disclosure - Suspicious Comments [10027]
+PASS: Open Redirect [10028]
+PASS: Cookie Poisoning [10029]
+PASS: User Controllable Charset [10030]
+PASS: User Controllable HTML Element Attribute (Potential XSS) [10031]
+PASS: Viewstate Scanner [10032]
+PASS: Directory Browsing [10033]
+PASS: Heartbleed OpenSSL Vulnerability (Indicative) [10034]
+PASS: Server Leaks Information via "X-Powered-By" HTTP Response Header Field(s) [10037]
+PASS: X-Backend-Server Header Information Leak [10039]
+PASS: HTTP to HTTPS Insecure Transition in Form Post [10041]
+PASS: HTTPS to HTTP Insecure Transition in Form Post [10042]
+PASS: User Controllable JavaScript Event (XSS) [10043]
+PASS: Big Redirect Detected (Potential Sensitive Information Leak) [10044]
+PASS: Retrieved from Cache [10050]
+PASS: X-ChromeLogger-Data (XCOLD) Header Information Leak [10052]
+PASS: CSP Scanner [10055]
+PASS: X-Debug-Token Information Leak [10056]
+PASS: Username Hash Found [10057]
+PASS: X-AspNet-Version Response Header Scanner [10061]
+PASS: PII Disclosure [10062]
+PASS: Timestamp Disclosure [10096]
+PASS: Hash Disclosure [10097]
+PASS: Cross-Domain Misconfiguration [10098]
+PASS: Weak Authentication Method [10105]
+PASS: Reverse Tabnabbing [10108]
+PASS: Modern Web Application [10109]
+PASS: Private IP Disclosure [2]
+PASS: Session ID in URL Rewrite [3]
+PASS: Script Passive Scan Rules [50001]
+PASS: Insecure JSF ViewState [90001]
+PASS: Charset Mismatch [90011]
+PASS: Application Error Disclosure [90022]
+PASS: Loosely Scoped Cookie [90033]
+WARN-NEW: Cookie No HttpOnly Flag [10010] x 4 
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/login/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/register/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/login/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/register/ (200 OK)
+WARN-NEW: Cookie Without Secure Flag [10011] x 4 
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/login/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/register/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/login/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/register/ (200 OK)
+WARN-NEW: Incomplete or No Cache-control and Pragma HTTP Header Set [10015] x 26 
+    https://prod-lbufptgd.lab.practical-devsecops.training/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/tutorials/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/static/taskManager/css/bootstrap.css (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/static/taskManager/css/font-awesome.css (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/static/taskManager/css/bootstrap.min.css (200 OK)
+WARN-NEW: Cross-Domain JavaScript Source File Inclusion [10017] x 18 
+    https://prod-lbufptgd.lab.practical-devsecops.training/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/tutorials/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/login/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/tutorials/injection/ (200 OK)
+WARN-NEW: X-Content-Type-Options Header Missing [10021] x 38 
+    https://prod-lbufptgd.lab.practical-devsecops.training/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/tutorials/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/static/taskManager/css/bootstrap.css (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/static/taskManager/css/font-awesome.css (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/static/taskManager/css/bootstrap.min.css (200 OK)
+WARN-NEW: Strict-Transport-Security Header Not Set [10035] x 44 
+    https://prod-lbufptgd.lab.practical-devsecops.training/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/robots.txt (404 NOT FOUND)
+    https://prod-lbufptgd.lab.practical-devsecops.training/sitemap.xml (404 NOT FOUND)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/tutorials/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/register (301 MOVED PERMANENTLY)
+WARN-NEW: Server Leaks Version Information via "Server" HTTP Response Header Field [10036] x 44 
+    https://prod-lbufptgd.lab.practical-devsecops.training/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/robots.txt (404 NOT FOUND)
+    https://prod-lbufptgd.lab.practical-devsecops.training/sitemap.xml (404 NOT FOUND)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/tutorials/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/register (301 MOVED PERMANENTLY)
+WARN-NEW: Content Security Policy (CSP) Header Not Set [10038] x 21 
+    https://prod-lbufptgd.lab.practical-devsecops.training/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/robots.txt (404 NOT FOUND)
+    https://prod-lbufptgd.lab.practical-devsecops.training/sitemap.xml (404 NOT FOUND)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/tutorials/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/static/taskManager/js/bootstrap.min.js (404 NOT FOUND)
+WARN-NEW: Secure Pages Include Mixed Content (Including Scripts) [10040] x 18 
+    https://prod-lbufptgd.lab.practical-devsecops.training/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/tutorials/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/login/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/tutorials/injection/ (200 OK)
+WARN-NEW: Cookie Without SameSite Attribute [10054] x 4 
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/login/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/register/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/login/ (200 OK)
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/register/ (200 OK)
+WARN-NEW: Absence of Anti-CSRF Tokens [10202] x 1 
+    https://prod-lbufptgd.lab.practical-devsecops.training/taskManager/forgot_password/ (200 OK)
+FAIL-NEW: 0 FAIL-INPROG: 0  WARN-NEW: 11    WARN-INPROG: 0  INFO: 0 IGNORE: 0   PASS: 40
+
+If you want the output in JSON format, you can use -J option.
+
+docker run --user $(id -u):$(id -g) -w /zap -v $(pwd):/zap/wrk:rw --rm owasp/zap2docker-stable zap-baseline.py -t https://prod-lbufptgd.lab.practical-devsecops.training -J zap-output.json
+
+The result will be saved in the current directory, then check the output file with
+ls -l
+command and you will see
+zap-output.json
+file.
+
+In the next exercise, we will put the baseline scan into the CI/CD pipeline.
+
+
