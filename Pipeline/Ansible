@@ -6,20 +6,6 @@ stages:
   - integration
   - prod
 
-ansible-hardening:
-  stage: prod
-  image: willhallonline/ansible:2.9-ubuntu
-  before_script:
-    - mkdir -p ~/.ssh
-    - echo "$DEPLOYMENT_SERVER_SSH_PRIVKEY" > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
-    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
-  script:
-    - echo "[prod]" >> inventory.ini
-    - echo "$DEPLOYMENT_SERVER" >> inventory.ini
-    - ansible-galaxy install dev-sec.os-hardening
-    - ansible-playbook -i inventory.ini ansible-hardening.yml
-
 inspec:
   stage: prod
   image: willhallonline/ansible:2.9-ubuntu
@@ -33,5 +19,20 @@ inspec:
     - wget https://packages.chef.io/files/stable/inspec/4.18.114/ubuntu/16.04/inspec_4.18.114-1_amd64.deb
     - dpkg -i inspec_4.18.114-1_amd64.deb
   script:
-    - inspec exec https://github.com/dev-sec/linux-baseline -t ssh://root@"$DEPLOYMENT_SERVER" -i ~/.ssh/id_rsa --chef-license accept
-  allow_failure: true 
+    - inspec exec https://github.com/dev-sec/nginx-baseline -t ssh://root@"$DEPLOYMENT_SERVER" -i ~/.ssh/id_rsa --chef-license accept
+  allow_failure: true
+  
+  
+  ansible-hardening:
+  stage: prod
+  image: willhallonline/ansible:2.9-ubuntu
+  before_script:
+    - mkdir -p ~/.ssh
+    - echo "$DEPLOYMENT_SERVER_SSH_PRIVKEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+  script:
+    - echo "[prod]" >> inventory.ini
+    - echo "$DEPLOYMENT_SERVER" >> inventory.ini
+    - ansible-galaxy install dev-sec.nginx-hardening
+    - ansible-playbook -i inventory.ini nginx-hardening.yml
