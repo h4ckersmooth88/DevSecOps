@@ -37,9 +37,9 @@ zap-baseline:
   stage: integration
   script:
     - docker pull owasp/zap2docker-stable
-    - docker run --user $(id -u):$(id -g) -w /zap -v $(pwd):/zap/wrk:rw --rm owasp/zap2docker-stable zap-baseline.py -t https://prod-odtjrefs.lab.practical-devsecops.training -J zap-output.json
+    - docker run --user $(id -u):$(id -g) -w /zap -v $(pwd):/zap/wrk:rw --rm owasp/zap2docker-stable zap-baseline.py -t $PROD_HOST -x zap-output.xml
   after_script:
-    - docker rmi owasp/zap2docker-stable  # clean up the image to save the disk space
+    - python3 upload_results.py --host $DOJO_HOST --api_key $DOJO_API_TOKEN --engagement_id 1 --result_file zap-output.xml --username root --scanner "ZAP Scan"
   artifacts:
     paths: [zap-output.json]
     when: always # What does this do?
