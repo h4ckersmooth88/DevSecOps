@@ -42,5 +42,5 @@ zap-baseline:
     - python3 upload_results.py --host $DOJO_HOST --api_key $DOJO_API_TOKEN --engagement_id 1 --result_file zap-output.xml --username root --scanner "ZAP Scan"
   artifacts:
     paths: [zap-output.xml]
-    when: always # What does this do?
-  allow_failure: false
+    when: always
+  allow_failure: true
