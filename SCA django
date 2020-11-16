@@ -1,0 +1,45 @@
+image: docker:latest
+
+services:
+  - docker:dind
+
+stages:
+  - build
+  - test
+  - prod
+
+build:
+  stage: build
+  image: python:3.6
+  before_script:
+   - pip3 install --upgrade virtualenv
+  script:
+   - virtualenv env
+   - source env/bin/activate
+   - pip install -r requirements.txt
+   - python manage.py check
+
+test:
+  stage: test
+  image: python:3.6
+  before_script:
+   - pip3 install --upgrade virtualenv
+  script:
+   - virtualenv env
+   - source env/bin/activate
+   - pip install -r requirements.txt
+   - python manage.py test taskManager
+
+SCA:
+  stage: test
+  script:
+    #pull docker image safety
+    - docker pull hysnsec/safety
+    # execute to run safety images in docker and check the component
+    - docker run -v $(pwd):/src --rm hysnsec/safety check -r requirements.txt --json > sca-results.json
+  artifacts:
+    paths: [sca-results.json]
+    when: always
+    expire_in: one week
+  allow_failure: true 
+
