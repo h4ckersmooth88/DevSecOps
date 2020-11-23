@@ -1,0 +1,57 @@
+image: docker:latest
+
+services:
+  - docker:dind
+
+stages:
+  - build
+  - test
+  - release
+  - preprod
+  - integration
+  - prod
+      
+build:
+  stage: build
+  script:
+    - echo "This is a build step"
+
+test:
+  stage: test
+  script:
+    - echo "This is a test step"
+
+
+ansible-hardening:
+  stage: prod
+  image: willhallonline/ansible:2.9-ubuntu
+  before_script:
+    - mkdir -p ~/.ssh
+    - echo "$DEPLOYMENT_SERVER_SSH_PRIVKEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+    - apt-get update
+    - apt-get install wget
+    - mkdir callback_plugins
+    - cd callback_plugins
+    - wget https://raw.githubusercontent.com/h4ckersmooth88/DevSecOps/main/json_cb.py
+    - cat ~/callback_plugins/json_cb.py
+  script:
+    - echo "[prod]" >> inventory.ini
+    - echo "$DEPLOYMENT_SERVER" >> inventory.ini
+    - ansible-galaxy install dev-sec.os-hardening
+    - ANSIBLE_STDOUT_CALLBACK=json_cb ansible-playbook -i inventory.ini ansible-hardening.yml
+
+
+integration:
+  stage: integration
+  script:
+    - echo "This is an integration step"
+    - exit 1
+  allow_failure: true # Even if the job fails, continue to the next stages
+
+prod:
+  stage: prod
+  script:
+    - echo "This is a deploy step"
+  when: manual # Continuous Delivery
