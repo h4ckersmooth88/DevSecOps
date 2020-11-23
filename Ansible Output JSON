@@ -32,16 +32,14 @@ ansible-hardening:
     - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
     - apt-get update
     - apt-get install wget
-    - mkdir callback_plugins
-    - cd callback_plugins
-    - wget https://raw.githubusercontent.com/h4ckersmooth88/DevSecOps/main/json_cb.py
-    - cat ~/callback_plugins/json_cb.py
+    - ansible --version
+  variables:
+    ANSIBLE_STDOUT_CALLBACK: json
   script:
     - echo "[prod]" >> inventory.ini
     - echo "$DEPLOYMENT_SERVER" >> inventory.ini
     - ansible-galaxy install dev-sec.os-hardening
-    - ANSIBLE_STDOUT_CALLBACK=json_cb ansible-playbook -i inventory.ini ansible-hardening.yml
-
+    - ansible-playbook -i inventory.ini ansible-hardening.yml
 
 integration:
   stage: integration
