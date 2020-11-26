@@ -22,6 +22,23 @@ inspec:
     - inspec exec https://github.com/dev-sec/nginx-baseline -t ssh://root@"$DEPLOYMENT_SERVER" -i ~/.ssh/id_rsa --chef-license accept
   allow_failure: true
   
+  inspec2:
+  stage: prod
+  only:
+    - "master"
+  environment: production
+  before_script:
+    - mkdir -p ~/.ssh
+    - echo "$DEPLOYMENT_SERVER_SSH_PRIVKEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+  script:
+    - docker run --rm -v /root/.ssh/id_rsa:/id_rsa -v $(pwd):/opt chef/inspec exec https://github.com/dev-sec/linux-baseline -t ssh://root@$DEPLOYMENT_SERVER -i /id_rsa --chef-license accept --reporter json:/opt/inspec-output.json
+  artifacts:
+    paths: [inspec-output.json]
+    when: always
+
+
   
   ansible-hardening:
   stage: prod
